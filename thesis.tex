@@ -1,0 +1,284 @@
+\documentclass[a4paper,12pt,oneside,british]{scrbook}
+
+% Page geometry.
+\usepackage[tmargin=2.3cm,bmargin=4cm,lmargin=3.5cm,rmargin=3.5cm]{geometry}
+\usepackage[onehalfspacing]{setspace}
+
+\usepackage[perpage,symbol*]{footmisc}
+\usepackage[sort, super, comma]{natbib}
+\usepackage{caption, graphicx, enumitem, siunitx, xcolor, xstring, xparse, etoolbox, trimspaces}
+\usepackage{zref-savepos, mathtools, adjustbox}
+\usepackage{booktabs, dcolumn, multirow}
+
+% Fonts, colours and commands shared with the images.
+\usepackage{thesis}
+
+% Packages for which the import order is important.
+\usepackage[pdfusetitle,pdflang=en-GB,backref=page]{hyperref}
+\usepackage{cleveref}
+
+\hypersetup{%
+    colorlinks=true,
+    linkcolor=link,
+    citecolor=link,
+    urlcolor=link,
+}
+
+\KOMAoptions{
+    numbers=noenddot,
+    chapterprefix=true,
+    headings=small,
+}
+
+
+%% Table of contents leaders (specific to KOMA-script).
+\makeatletter
+\definecolor{toc@major}{rgb}{0.4,0.4,0.4}
+\definecolor{toc@minor}{rgb}{0.85,0.85,0.85}
+\newcommand*\toc@linefill[1]{\ \ \color{#1}\leaders\hbox{$\cdot$}\hfill}
+\DeclareTOCStyleEntry[beforeskip=2.5em plus 1fil]{default}{part}
+\DeclareTOCStyleEntry[linefill=\toc@linefill{toc@major}]{default}{section}
+\DeclareTOCStyleEntry[linefill=\toc@linefill{toc@minor}]{default}{subsection}
+\DeclareTOCStyleEntry[linefill=\toc@linefill{toc@major},indent=0pt]{default}{figure}
+\DeclareTOCStyleEntry[linefill=\toc@linefill{toc@major},indent=0pt]{default}{table}
+\makeatother
+
+\renewcommand*\chaptermarkformat{Chapter~\thechapter\quad}
+
+%% Formatting for the numbering of chapters and sections; I want an
+%% em-space rather than an en-space after the numbers.  The implementations are
+%% taken from the base KOMA-Script classes (see manual v3.28, page 110).
+\makeatletter
+\renewcommand*\chapterformat{\mbox{\textcolor{fade}{\Large\chapappifchapterprefix\nobreakspace\thechapter\autodot}\IfUsePrefixLine{\vspace*{-2em}}{\quad}}}
+\renewcommand*\sectionformat{\textcolor{fade}{\hbox to 32pt{\thesection\autodot\hfill}}}
+\renewcommand*\subsectionformat{\textcolor{fade}{\hbox to 32pt{\thesubsection\autodot\hfill}}}
+\makeatother
+
+
+%%% Floats and captions.
+
+\DeclareCaptionLabelSeparator{emdash}{---\ignorespaces}
+\captionsetup{%
+    format=plain,
+    labelsep=emdash,
+    singlelinecheck=false,
+    font={footnotesize},
+    labelfont=sc,
+}
+
+\makeatletter
+\let\float@size\footnotesize%
+\setlength\textfloatsep{2.5em plus 2em minus 1em}%
+\setlength\floatsep{2.5em plus 2em minus 1em}%
+
+\newlength\captionbesidewidth\settowidth\captionbesidewidth{\float@size1234567890}\setlength\captionbesidewidth{4\captionbesidewidth}
+\newlength\captionbesidesep\setlength\captionbesidesep{1.5em}
+\newlength\captionbesidefigwidth\setlength\captionbesidefigwidth{3.4in}
+\newlength\figwidth
+
+%% Handle the figure and table environments for non-full-width figures.
+\let\figure@begin\figure\let\figure@end\endfigure%
+\let\table@begin\table\let\table@end\endtable%
+% Replacement for the \caption macro which stores the arguments.
+\NewDocumentCommand\float@caption@store{om}{%
+    \IfNoValueTF{#1}%
+        {\gdef\float@caption@replace{{#2}}}%
+        {\gdef\float@caption@replace{[#1]{#2}}}%
+}%
+\def\float@begincaptionbeside{\begin{captionbeside}}%
+\newsavebox\float@box%
+\RenewDocumentEnvironment{figure}{+b}{%
+    \savebox\float@box{\float@size\setlength\figwidth\captionbesidefigwidth\let\float@caption\caption\let\caption\float@caption@store\trim@spaces{#1}}%
+    \setlength\columnsep{\captionbesidesep}%
+    \figure@begin\expandafter\float@begincaptionbeside%
+            \float@caption@replace%
+            [l]%
+            [\dimexpr\captionbesidewidth+\captionbesidesep+\captionbesidefigwidth\relax]%
+            [\dimexpr\textwidth-(\captionbesidewidth+\captionbesidesep+\captionbesidefigwidth)\relax]%
+        \usebox\float@box%
+    \end{captionbeside}%
+}{\figure@end}
+\RenewDocumentEnvironment{table}{+b}{%
+    \savebox\float@box{\float@size\setlength\figwidth\captionbesidefigwidth\let\float@caption\caption\let\caption\float@caption@store\trim@spaces{#1}}%
+    \setlength\columnsep{\captionbesidesep}%
+    \table@begin\expandafter\float@begincaptionbeside%
+            \float@caption@replace%
+            [l]%
+            [\dimexpr\captionbesidewidth+\captionbesidesep+\captionbesidefigwidth\relax]%
+            [\dimexpr\textwidth-(\captionbesidewidth+\captionbesidesep+\captionbesidefigwidth)\relax]%
+        % Margins are to adjust for the bottom rule that doesn't seem to be accounted for in the baseline.
+        \adjustbox{margin*=0pt 4pt 0pt 0pt,valign=b}{\usebox\float@box}%
+    \end{captionbeside}%
+}{\table@end}
+
+%% Redefine the figure* environment
+\catcode`*=11
+\let\figures@begin\figure*\let\figures@end\endfigure*%
+\catcode`*=12
+\RenewDocumentEnvironment{figure*}{+b}{%
+    \savebox\float@box{\float@size\setlength\figwidth\textwidth\let\float@caption\caption\let\caption\float@caption@store\trim@spaces{#1}}%
+    \figures@begin%
+        \begin{center}\usebox\float@box\end{center}\vspace*{-\baselineskip}%
+        \expandafter\caption\float@caption@replace%
+    \figures@end%
+}{}
+\AtBeginEnvironment{tabular}{\float@size}%
+\AtBeginEnvironment{tabular*}{\float@size}%
+
+\NewDocumentEnvironment{coauthorship}{}{%
+    \vspace*{-1em}\singlespacing\hfill\begin{minipage}{0.75\linewidth}\begin{center}\textsc{Coauthorship}\end{center}\vspace*{-0.5\baselineskip}\small\itshape%
+}{%
+    \end{minipage}\hfill\vspace*{2.2\baselineskip}\@afterindentfalse\@afterheading%
+}
+\makeatother
+
+
+%%% Bibliography.
+
+\bibliographystyle{style}
+\let\bibfont\footnotesize
+\setlength\bibsep{0.2\baselineskip plus 0.1\baselineskip}
+
+\renewcommand*\backref[1]{}
+\renewcommand*\backrefalt[4]{%
+    \ifcase #1%
+    \or%
+        Cited on page~#2.%
+    \else%
+        Cited on pages #2.%
+    \fi%
+}
+\newcommand*\intextcite[1]{%
+    % natbib's \setcitestyle inserts an extra space for some reason.
+    {\ignorespaces\setcitestyle{numbers}ref.~\cite{#1}}%
+}
+
+
+%%% In-document Tikz setup.
+
+\usetikzlibrary{external}
+\tikzexternalize[prefix=tikzexternal/]
+% Length registers used in TikZ drawings.
+\newlength\fontheight
+\newlength\cellheight
+\newlength\cellbaseline
+
+
+%%% Main document.
+
+\title{Robust Coherence and Entanglement Creation in Trapped Ions}
+\author{Jake Lishman}
+\date\today
+
+
+\begin{document}
+
+%% No front/main matter split because KOMAscript hardcodes the page-numbering reset.
+
+\makeatletter
+\begin{titlepage}\singlespacing%
+    {\noindent\includegraphics[width=5cm]{imperial.pdf}}%
+        \begin{center}%
+        \vspace*{5.5cm + 2em}%
+        \begin{addmargin}[-2em]{-2em}\centering\huge\sffamily\bfseries\@title\end{addmargin}%
+        \vspace*{2em + 2.5cm}%
+        \Large Jake Lishman\par%
+        \vspace{0.5cm}%
+        \large April 2022\normalsize\par%
+        \vfill%
+        {\singlespacing\textit{%
+            Thesis submitted in partial fulfilment of the requirements of the degree of\\%
+            Doctor of Philosophy in the Department of Physics of Imperial College London.%
+        }}%
+    \end{center}
+\end{titlepage}
+\makeatother
+
+\chapter*{Copyright}
+\copyright{} 2022 Jake Lishman.
+All content is licensed under the Creative Commons Attribution 4.0 International Licence.
+In essence, you are free to redistribute, transform, and build upon the material, provided you appropriately credit me.
+See \url{https://creativecommons.org/licenses/by/4.0/} for the full terms.
+
+This thesis is my own work.
+Contributions by other people are attributed and referenced.
+Many of the results in this thesis can be found in the published works:
+\begin{itemize}[topsep=0.2\baselineskip,itemsep=0pt]
+    \item Jake Lishman and Florian Mintert, \textit{Trapped-Ion Entangling Gates Robust Against Qubit Frequency Errors}, \href{https://doi.org/10.1103/PhysRevResearch.2.033117}{Physical Review Research \textbf{2}, 033117 (2020)}\nocite{Lishman2020};
+%
+    \item Mahdi Sameti, Jake Lishman, and Florian Mintert, \textit{Strong-Coupling Quantum Logic of Trapped Ions}, \href{https://doi.org/10.1103/PhysRevA.103.052603}{Physical Review A \textbf{103}, 052603 (2021)}\nocite{Sameti2021}; and
+%
+    \item Ollie Corfield\footnote{\label{foot:equal}Shared the lead author credit.}, Jake Lishman\footref{foot:equal}, Chungsun Lee, Jacopo Mosca Toba, George Porter, Johannes Heinrich, Simon Webster, Florian Mintert, and Richard Thompson, \textit{Certifying Multilevel Coherence in the Motional State of a Trapped Ion}, \href{https://doi.org/10.1103/PRXQuantum.2.040359}{PRX Quantum \textbf{2}, 040359 (2021)}\nocite{Corfield2021}.
+\end{itemize}
+Several figures in this document are derived from these publications, used with permission from the American Physical Society.
+\Cref{fig:coherence-superposition-preparation,fig:coherence-pdf,fig:qubiterror-levels,fig:qubiterror-multitone,fig:qubiterror-phase,fig:beyondld-fidelity,fig:beyondld-thermal,fig:beyondld-phasespace} have very minor modifications---to match the style of this document---from their counterparts in \citet{Corfield2021} (those in \cref{sec:coherence}), \citet{Lishman2020} (\cref{sec:qubiterror}) and \citet*{Sameti2021} (\cref{sec:beyondld}).
+These were originally authored by me, with input from my co-authors, and are largely regenerated from the same code.
+\Cref{fig:coherence-bsb,fig:coherence-phase-2-3,fig:coherence-phase-4} are my own versions of figures from \citet{Corfield2021}, and \cref{fig:beyondld-levels} is based on a figure from \citet*{Sameti2021}.
+
+
+\chapter*{Abstract}
+
+Both entanglement and coherence are key resources for all applications of quantum technologies, from the well-known efforts to create a quantum computer, to research into thermodynamic work extraction.
+Trapped ions are one of the leading platforms for scalable quantum computing, as the site of many of the earliest quantum logic gates, and now boast the current highest-fidelity gates and longest coherence times of their qubits.
+This thesis presents three strands of work surrounding the creation, manipulation and verification of coherence and entanglement in trapped ions.
+
+Coherence is classified into differing ranks, to better represent the structure of multiple-component superpositions.
+A certifier for these different levels, analogous to an entanglement witness, is derived from a one-dimensional interference pattern in a generalisation of the Ramsey scheme.
+This metric cannot produce false positives for high-order coherence, even when the coherence basis cannot be measured directly.
+It requires significantly fewer experimental resources than alternate schemes that have been proposed, and a demonstration in the motional mode of a single trapped ion is presented, verifying that 3-coherence was created.
+
+The M\o lmer--S\o rensen Bell-state-creation gate in trapped ions is then examined, and its principal sources of frequency errors investigated.
+A multi-tone extension of the gate is presented, which is numerically optimised to make its entanglement generation robust against errors in the qubit and driving frequencies.
+This analysis produces a gate that is specifically optimised for the estimated error distributions of the target experiment.
+
+Finally, the same M\o lmer--S\o rensen gate is taken outside the weak-coupling approximation in which it has hitherto been confined.
+A new method of perturbative expansion is introduced and used to calculate functional constraints on the applied driving fields that can be satisfied to cancel unwanted non-linear terms from the dynamics order-by-order.
+This new strategy removes previously a fundamental limitation on the speed of trapped-ion entangling gates, and severely relaxes the cooling requirements on the motional modes.
+
+
+
+\chapter*{Acknowledgements}
+
+I leave Imperial with nothing but positive experiences to look back on, and I'm grateful to all those with whom I worked in one capacity or another.
+There are some people deserving of my particular thanks.
+
+My supervisor \textsc{Florian Mintert} was unfailing in his support for me even after I crashed into him while cycling to Kingston, and I never stopped being amazed at his ability to discuss whatever physics I had on my mind when I knocked on his door, without a second's preparation.
+My co-supervisor \textsc{Richard Thompson}'s caring approach both scientifically and emotionally always gave the encouragement I needed to succeed, no matter what predicament I got myself into.
+
+I would not have stayed sane without \textsc{Fred Sauvage} to work alongside and thrash me at squash, although I did have to wage constant war against the hordes of papers invading my desk.
+\textsc{Ollie Corfield} welcomed me into the ion-trap lab, and my fondest memory was our first clumsy attempt at the experiment that three years later became \cref{sec:coherence}, once we'd figured out what we were doing and evicted me back to the theory office.
+\textsc{Simon Webster} was my adoptive postdoc, always willing to answer my na\"ive theorist's questions about the lab, and who motivated me to keep running both literally and figuratively.
+
+My partner \textsc{Marta Segit} showed me how to celebrate my achievements, and helped me when I was panicking about having to give my first ever technical presentation.
+I repaid her by becoming nocturnal in my final rush to write this thesis and seeing her only in passing for a month, despite living in the same house.
+She has been the greatest model of support in the six-and-a-half years I have known her, and I could not have completed my degree without her.
+
+Finally, my father \textsc{Graham Lishman}.
+If Marta got me over the finish line, it was my Dad who made it possible for me to even begin.
+I write this now two decades on from the night Dad taught me to solve simple simultaneous equations after I got stuck on a problem at school.
+While the maths lessons stopped not long after, the ways he consistently praised effort and perseverance instead of simple results and showed me that I was loved every day of my life are why I am here today.
+I can only hope to be as good a parent as you have been.
+
+\vfill
+
+\hfill---\textsc{Jake}
+
+
+{\flushbottom\hypersetup{linkcolor=black}\tableofcontents\listoffigures\listoftables}
+
+\part{Background}
+\include{introduction}
+\include{qi}
+\include{iontrap}
+
+\part{New Research}
+\include{coherence}
+\include{qubiterror}
+\include{beyondld}
+\include{conclusion}
+
+\backmatter\singlespacing\hbadness=10000
+% Force a citation of the control sequence used to enable titles/whatever in the modified apsrev bibstyle.
+\makeatletter\immediate\write\@auxout{\string\citation{bibstylecontrol}}\makeatother%
+\flushbottom\bibliography{style,phd}
+\end{document}

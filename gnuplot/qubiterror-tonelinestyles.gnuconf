@@ -1,0 +1,10 @@
+load 'palette/viridis.pal'
+
+set style line 1 lw 1 lc rgb 000000 dt (20, 20)
+set style line 2 lw 3 lt palette frac 0
+set style line 3 lw 3 lt palette frac 0 dt (5, 5)
+set style line 4 lw 3 lt palette frac 0.45
+set style line 5 lw 3 lt palette frac 0.45 dt (5, 5)
+set style line 6 lw 3 lt palette frac 0.9
+
+unset colorbox

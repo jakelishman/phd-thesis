@@ -1,0 +1,138 @@
+\newlength\ionwellwidth\setlength\ionwellwidth{0.04\widefigwidth}%
+\newlength\ionwellheight\setlength\ionwellheight{2em}%
+\newlength\ionwellellipsis\settowidth\ionwellellipsis{\footnotesize\ $\dotsc$}%
+\newcommand*\nphonons{2}
+\newlength\figsep\setlength\figsep{0.209\widefigwidth}
+\newlength\vsep\setlength\vsep{1.3\ionwellheight}
+\newlength\hpad\setlength\hpad{0.1\figsep}
+\newlength\vpad\setlength\vpad{1em}
+\tikzset{%
+    level/.style = {
+        draw=black,
+        semithick,
+    },
+    coupling/.style={
+        draw=#1,
+        very thick,
+        {Latex[scale=0.7]}-{Latex[scale=0.7]},
+    },
+    semicoupling/.style={
+        draw=#1,
+        very thick,
+        -{Latex[scale=0.7]},
+    },
+    stepjoin/.style={
+        draw=black!35,
+        ->,
+    },
+    ion/.style = {
+        inner sep=0mm,
+        minimum size = #1*1.1em,
+        circle,
+        semithick,
+        draw=solbase01,
+        fill=solbase01!50,
+    },
+    ion wells/.pic={
+        code={%
+\begin{scope}[local bounding box=wells]
+\coordinate (origin) at (0, 0);
+\coordinate (offset) at (1.5\ionwellwidth, 0.3/\nphonons * \ionwellheight);%0.55\ionwellheight);
+\foreach \qubit/\location in {g/origin, e/offset} {
+    \begin{scope}[shift=(\location)]
+    \foreach \y in {0, ..., \nphonons} {
+        \path [level]
+            (-0.5\ionwellwidth, \y /\nphonons *\ionwellheight)
+            coordinate (\qubit-line\y-l)
+            -- +(\ionwellwidth, 0) coordinate [midway] (\qubit-line\y) coordinate (\qubit-line\y-r);
+    }
+    \end{scope}
+}
+\path ($ 0.5*(origin) + 0.5*(offset) + (0, 0.5em+\ionwellheight) $) -- +(0, \ionwellellipsis)
+    node [font=\footnotesize, midway, sloped] {\ $\dotsc$\ };
+\end{scope}
+        }
+    },
+}%
+\begin{tikzpicture}%
+%
+\begin{scope}%
+    \pic {ion wells};
+    \foreach \y in {0, ..., \nphonons} {
+        \node at (g-line\y-l) [anchor=east, xshift=-0.3em, inner sep=0pt] {$\ket\y$};
+    }
+    \node [below=0.5em of g-line0] {$\ket g$};
+    \node [below=0.5em of e-line0] {$\ket e$};
+    \node [ion=0.57735] at (g-line0) {};
+    \node [ion=0.57735] at (g-line1) {};
+    \node [ion=0.57735] at (g-line2) {};
+    \node at ($ (wells.north west) + (0, \vsep) $) [anchor=north west, inner sep=0pt]{(a)};
+    \coordinate (port-r-1) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}%
+%
+\begin{scope}[xshift=1\figsep]%
+    \pic {ion wells};
+    \node [ion=0.51874] at (e-line0) {};
+    \node [ion=0.57735] at (e-line1) {};
+    \node [ion=0.57735] at (g-line0) {};
+    \node [ion=0.25346] at (g-line1) {};
+    \path [semicoupling=solred] (g-line2) -- (e-line1);
+    \path [coupling=solred] (g-line1) -- (e-line0);
+    \node at ($ (wells.north west) + (0, \vsep) $) [anchor=north west, inner sep=0pt]{(b)};
+    \coordinate (port-l-2) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+    \coordinate (port-r-2) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}
+%
+\begin{scope}[xshift=2\figsep, yshift=\vsep]
+    \pic {ion wells};
+    \node at (wells.north west) [anchor=north west, inner sep=0pt]{(c)};
+    \node [ion=0.32837] at (e-line0) {};
+    \node [ion=0.70328] at (g-line0) {};
+    \node [ion=0.63054] at (g-line1) {};
+    \path [semicoupling=carrier] (e-line1) -- (g-line1);
+    \path [coupling=carrier] (g-line0) -- (e-line0);
+    \coordinate (port-l-3-up) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+    \coordinate (port-r-3-up) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}\begin{scope}[xshift=2\figsep, yshift=-\vsep]
+    \pic {ion wells};
+    \node [ion=0.70840] at (e-line0) {};
+    \node [ion=0.63054] at (e-line1) {};
+    \node [ion=0.31717] at (g-line0) {};
+    \path [semicoupling=carrier] (g-line1) -- (e-line1);
+    \path [coupling=carrier] (g-line0) -- (e-line0);
+    \coordinate (port-l-3-down) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+    \coordinate (port-r-3-down) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}
+%
+\begin{scope}[xshift=3\figsep, yshift=\vsep]
+    \pic {ion wells};
+    \node at (wells.north west) [anchor=north west, inner sep=0pt]{(d)};
+    \node [ion=0.71092] at (e-line0) {};
+    \node [ion=0.70328] at (g-line0) {};
+    \path [semicoupling=solred] (g-line1) -- (e-line0);
+    \coordinate (port-l-4-up) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+    \coordinate (port-r-4-up) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}\begin{scope}[xshift=3\figsep, yshift=-\vsep]
+    \pic {ion wells};
+    \node [ion=0.70840] at (e-line0) {};
+    \node [ion=0.70581] at (g-line0) {};
+    \path [semicoupling=solblue] (e-line1) -- (g-line0);
+    \coordinate (port-l-4-down) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+    \coordinate (port-r-4-down) at ($ (wells.east) + (\hpad, 0) + (0, -\vpad) $);
+\end{scope}
+%
+\begin{scope}[xshift=4\figsep]
+    \pic {ion wells};
+    \node [ion=1.00000] at (g-line0) {};
+    \path [semicoupling=carrier] (e-line0) -- (g-line0);
+    \node at ($ (wells.north west) + (0, \vsep) $) [anchor=north west, inner sep=0pt]{(e)};
+    \coordinate (port-l-5) at ($ (wells.west) - (\hpad, 0) + (0, -\vpad) $);
+\end{scope}
+\path [stepjoin] (port-r-1) -- (port-l-2);
+\path [stepjoin] ($ (port-r-2) + (0, 0.5em) $) -- (port-l-3-up);
+\path [stepjoin] ($ (port-r-2) + (0, -0.5em) $) -- (port-l-3-down);
+\path [stepjoin] (port-r-3-up) -- (port-l-4-up);
+\path [stepjoin] (port-r-3-down) -- (port-l-4-down);
+\path [stepjoin] (port-r-4-up) -- ($ (port-l-5) + (0, 0.5em) $);
+\path [stepjoin] (port-r-4-down) -- ($ (port-l-5) + (0, -0.5em) $);
+\end{tikzpicture}%

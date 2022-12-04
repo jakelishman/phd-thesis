@@ -1,0 +1,561 @@
+\chapter{Entangling Gates With Strong Coupling}
+\label{sec:beyondld}
+
+\begin{coauthorship}
+The initial mathematical expansion of the entangling interaction in this chapter was proposed by Mahdi Sameti, and was subsequently polished into the complete form in collaboration with me and Florian Mintert.
+I performed all the numerical simulations of the gates, and wrote the algorithms to programmatically evaluate the functional constraints on the driving profiles in symbolic form.
+Mahdi and I worked together to find particular solutions to the resulting systems.
+The work in this chapter was also published in \intextcite{Sameti2021}.
+\end{coauthorship}
+
+The very first step in deriving the interaction Hamiltonian for a driving field with trapped ions is to make a linearity approximation.
+This is the Lamb--Dicke approximation that we introduced in \cref{sec:iontrap-sidebands}, and have been using ever since.
+Physically, it is a requirement that the coupling between the qubit states and the shared motion of the ions is weak.
+Mathematically, we encoded it as $(n+1)\eta^2\ll1$ for the Lamb--Dicke parameter $\eta$ and motional occupation $n$.
+It limits the available interactions to only the first-order sidebands and the carrier, and is necessary for the original M\o lmer--S\o rensen interaction with constant power to be independent of the motional state.
+
+With modern hardware, however, the necessity of maintaining this regime is becoming a more onerous burden.
+The highest fidelity gates must account for the breakdown of the approximation in their error budgets, where it is a non-negligible contribution~\cite{Ballance2016,Gaebler2016}.
+A common impediment to large-scale ion-trap quantum computing is the speed of gate operations.
+In order to increase speed, one must have more power available and consequently drive the gate with a larger value of the Lamb--Dicke parameter.
+As this increases, though, so do the non-linearities associated with the breakdown of the Lamb--Dicke regime, until they dominate all errors and reduce the fidelity well beyond any acceptable limit~\cite{Schaefer2018}.
+These attempts to increase the speed have been accompanied by some numerical work to curtail these effects, but prior to our work, there had been nothing systematic nor analytic.
+
+The non-linearities are also worsened by heating of the motional modes.
+With even modest values of the Lamb--Dicke parameter, if the motion is sufficiently excited, one will still see residual qubit--motion entanglement at the gate-completion time, and the entangling interaction itself will see its strength become phonon-number dependent.
+As the sizes of ion traps increase, so too does the heating rate on the ions, in general, meaning greater deviation from ideal gate operation.
+
+For trapped-ion quantum processors to continue to scale up, without unrealistic requirements on heating control and laser power, it is necessary to be able to break through the linearity approximation.
+This chapter presents a functional approach to bringing trapped-ion gates outside the Lamb--Dicke approximation, by driving higher-order sidebands to null undesired terms at the gate time.
+We focus on the M\o lmer--S\o rensen interaction, though the essential techniques are just as applicable to $\sz\otimes\sz$-type gates~\cite{Roos2008}.
+The recipe systematically removes terms of higher powers of the Lamb--Dicke parameter and the motional occupation as more sidebands are considered.
+Importantly, it does not require specific forms for the driving profile of each sideband, allowing it to be mixed with extant methods of suppressing other errors, such as the multi-tone gates discussed in the previous chapter.
+
+
+\section{Non-linear ion--motion interactions}
+\label{sec:beyondld-interaction}
+
+The laser--ion interaction Hamiltonian for a single motional mode is given in \cref{eq:iontrap-interaction-hamiltonian}.
+In the weak-coupling regime, one expands the motional exponential as
+\begin{align}
+\displace[\big]{i\eta e^{i\omega_zt}\a^\dagger} &= 1 + i\eta e^{-i\omega_z t}\a + i\eta e^{i\omega_z t}\a^\dagger + \order{\eta^2},\\
+\intertext{%
+and neglects the higher-order terms.
+More precisely, one can use the Baker--Campbell--Hausdorff-derived \cref{eq:iontrap-motional-exponential} to separate out the exponential into a sum
+}
+&\begin{aligned}
+    &= e^{-\frac{\eta^2}2} \sum_{j=0}^\infty\sum_{k=0}^\infty \frac{(i\eta)^{j+k}}{j!k!}e^{i(j-k)\omega_z t}\a^{\dagger j}\a^k\\
+    &= e^{-\frac{\eta^2}2} \sum_{k=-\infty}^\infty e^{ik\omega_z t} \op A_k(\eta).
+\end{aligned}\end{align}
+The operators $\{\op A_k\}$ change the motional state by $k$ phonons, and are explicitly
+\begin{equation}\label{eq:beyondld-fourier-operators}
+\op A_k(\eta) = \sum_{n=0}^\infty (i\eta)^{\abs k}\frac{{(-\eta^2)}^n}{(n+k)!n!}\,\a^{\dagger n+k}\a^n  \qquad\text{for $k \ge 0$, and $\op A_{-k}^{\vphantom\dagger} = (-1)^k\op A_k^\dagger$.}
+\end{equation}
+The complete interaction including the qubit-excitation operator $\Sp = \sum_j\sp^{(j)}$ is
+\begin{equation}\label{eq:beyondld-general-hamiltonian}
+\H = f(t)\,e^{-\frac{\eta^2}2}\!\sum_{k=-\infty}^\infty e^{ik\omega_z t} \Sp\op A_k + \hc.
+\end{equation}
+
+Each of the different $k$ corresponds to a well-defined transition as previously discussed: $k=0$ is the carrier, positive values of $k$ are the $k$th-order blue sideband, and negative values of $k$ are the corresponding red sideband.
+As before, each transition has an associated frequency $k\omega_z$, corresponding to the total frequency of phonons that need to be added---or removed, in the case of the red-sideband transitions---to the system.
+For the most part, the only transitions that have any appreciable effect on the dynamics are ones which share their frequency with a component of the driving field.
+
+\begin{figure}
+    \includegraphics{beyondld-levels.pdf}
+    \caption[Energy-level diagram of two co-trapped ions with motion]{\label{fig:beyondld-levels}%
+        Energy-level diagram for two ions and one motional mode driven by the Hamiltonian in \cref{eq:beyondld-hamiltonian}.
+        Applying a drive on equal-order blue- and red-sideband transitions simultaneously, close to resonance, results in an effective qubit--qubit interaction with phonon-dependent strength $\Gamma$.
+        If only the first-order sidebands are driven inside the Lamb--Dicke regime, this coupling is independent of the motion.
+    }
+\end{figure}
+
+With \cref{eq:beyondld-general-hamiltonian}, one can drive a series of two-photon processes that preserve the phonon count by targeting the equal-order red and blue sidebands with related drives.
+In particular, let us consider a driving field
+\begin{equation}\label{eq:beyondld-driving-field}
+f(t) = - i \frac{e^{\eta^2/2}}\eta \sum_{k>0} \Bigl(f_k(t) e^{-ik\omega_z t} + {(-1)}^k f_k^*(t)e^{ik\omega_z t}\Bigr).
+\end{equation}
+The remaining time dependences of the $\{f_k\}$ are slow compared to the trap frequency $\omega_z$ so that each term only drives its closest sideband.
+The prefactor of $e^{\eta^2/2}$ cancels out its corresponding term in the Hamiltonian, while the initial phase factor $-i$ and the relative phase factors ${(-1)}^k$ are chosen such that the Hamiltonian, neglecting far-off-resonant processes, simplifies to
+\begin{equation}\label{eq:beyondld-hamiltonian}
+\H = \frac1\eta\Sy\sum_{k>0}\Bigl(f_k \op A_k + f_k^* \op A_k^\dagger\Bigr).
+\end{equation}
+This does not include any carrier transitions; we will not use them in the following work.
+The factor of $1/\eta$ is crucial to the rest of this chapter, but we need to advance further in the derivations to fully motivate its inclusion.
+
+\Cref{fig:beyondld-levels} illustrates the effects of the Hamiltonian \cref{eq:beyondld-hamiltonian}.
+If any of the $f_k$ are non-zero, a two-photon two-qubit-entangling process is present with a phonon-dependent coupling strength $\Gamma$.
+In the special case of the first sideband and the Lamb--Dicke regime, this coupling strength is independent of the number of motional excitations, and the only other process is the qubit--motion interaction we have already discussed in detail.
+
+The standard linear M\o lmer--S\o rensen interaction is retrieved from \cref{eq:beyondld-hamiltonian} by addressing only the first-order sideband transitions, \textit{i.e.}\ driving only $f_1$.
+The original formulation of the gate corresponds to $f_1(t) = \frac\epsilon4e^{i\epsilon t}$.
+We have already seen the Magnus-expansion approach to solving the propagators in both \cref{eq:iontrap-ms-magnus,eq:qubiterror-ms-magnus}, which includes a term $\comm{\op A_1}{\op A_{-1}} = \eta^2 - 2\eta^4\a^\dagger\a + \order{\eta^6}$.
+In the Lamb--Dicke limit, this is truncated to its leading order, and the expansion terminates.
+
+To go further, let us define a shorthand notation for iterated time integration as
+\begin{equation}\label{eq:beyondld-av-notation}
+\av{f} = \int_0^t\mathrm dt_1\,f(t_1) \quad\text{and}\quad \av[\big]{f \av{g}} = \int_0^t\mathrm dt_1\,f(t_1)\int_0^{t_1}\mathrm dt_2\,g(t_2),
+\end{equation}
+and so forth for further nesting.
+In this form, the time-evolution operator for the base M\o lmer--S\o rensen gate, accounting for only the lowest orders of $\eta$, is\footnote{To reduce notational noise, this chapter uses the convention $\hbar = 1$.}
+\begin{equation}\label{eq:beyondld-u0}
+\U_0(t) = \exp\Bigl(\Sy\bigl(\av{f_1}\a^\dagger - \av{f_1^*}\a\bigr) + i\Sy^2\Im\av[\big]{f_1\av{f_1^*}}\Bigr).
+\end{equation}
+This operator has three processes: the desired $\Sy^2$, the unwanted $\Sy\a^\dagger$, and its reverse counterpart $\Sy\a$.
+Achieving an ideal gate is tantamount to solving the coupled conditions $\av{f_1} = 0$ and $\Im\av[\big]{f_1\av{f_1^*}} = \theta$, for a desired entangling angle $\theta$.
+Bell-state creation corresponds to $\theta = \pi/8$.\footnote{$\Sy^2 = 2 + 2\sy\otimes\sy$, hence the factor-of-two difference from the angle that might be expected.}
+
+We have now reached our departure point from known theory, and from the Lamb--Dicke regime.
+We now must consider Hamiltonians that are \emph{non-linear} in the motional operator $\a$, and contain higher-order terms in $\eta$.
+In principle, our approach will be to find a series expansion for the time-evolution operator akin to \cref{eq:beyondld-u0}, and then apply the constraints that all processes except for $\Sy^2$ go to zero at the gate time.
+
+We will seek to nullify unwanted terms order-by-order in $\eta$ by constructing a product expansion as%of the full propagator $\U$ as
+\begin{equation}
+\U = \U_0\U_1\dotsm\U_d\U_{\text{error}},
+\end{equation}
+where the final term is never explicitly calculated, but is guaranteed to only contain higher-order terms.
+The expansion is built by a series of frame transformations, each of which removes the terms of the lowest order of $\eta$.
+Starting from the base Hamiltonian, which we shall now label $\H_0$, we move to the next Hamiltonian by the transformation
+\begin{equation}\label{eq:beyondld-next-hamiltonian-exponentials}
+\H_{j+1} = \U_j^{\smash\dagger} \H_j^{\smash{\vphantom\dagger}}\mkern2mu\U_j^{\smash{\vphantom\dagger}} + i\bigl(\partial_t \U_j^{\smash\dagger}\bigr)\U_j^{\smash{\vphantom\dagger}}.
+\end{equation}
+The first unitary is exactly $\U_0$ as described by \cref{eq:beyondld-u0}.
+To remove the terms lowest-order in $\eta$ from the Hamiltonians, we define all subsequent unitaries as
+\begin{equation}
+\U_j = \exp\Bigl(-i\av[\big]{\H_j'}\Bigr) \quad\text{for $j>0$,}
+\end{equation}
+and $\H_j'$ is the terms of order exactly $\eta^j$ from $\H_j$.
+Note that $\U_j$ is not necessarily a solution to any Schr\"odinger equation; this is not required for the expansion.
+
+We do not need to directly calculate any matrix exponentials to evaluate \cref{eq:beyondld-next-hamiltonian-exponentials}.
+The first term permits a direct Baker--Campbell--Hausdorff expansion---using the result of \cref{eq:qi-bch-lemma}---yielding
+\begin{equation}\label{eq:beyondld-next-hamiltonian-term1}
+\U_j^{\smash\dagger} \H_j^{\smash{\vphantom\dagger}}\mkern2mu\U_j^{\smash{\vphantom\dagger}}
+    = \frac1{0!}\H_j + \frac1{1!}\comm[\Big]{i\av[\big]{\H_j'}}{\H_j} + \frac1{2!}\comm[\Big]{i\av[\big]{\H_j'}}{\comm[\Big]{i\av[\big]{\H_j'}}{\H_j}} + \dotsb.
+\end{equation}
+The second term requires an evaluation of the derivative of a matrix exponent.
+This derivative for a general matrix $\exp\op X$ is~\cite{Hall2015}
+\begin{equation}
+\partial_t e^{\op X} = \biggl(\int_0^1\mathrm d\alpha\,e^{\alpha\op X}\bigl(\partial_t \op X\bigr)e^{-\alpha\op X}\biggr)e^{\op X},
+\end{equation}
+which qualitatively is the continuous application of the chain and product rules of differentiation.
+Expanding the integrand into a sum with \cref{eq:qi-bch-lemma} and directly integrating the resulting power series in $\alpha$ gives the relation
+\begin{equation}\label{eq:beyondld-next-hamiltonian-term2}
+\Bigl(\partial_t e^{\op X}\Bigr)e^{-\op X} = \frac1{1!}\partial_t\op X + \frac1{2!}\comm[\Big]{\op X}{\partial_t\op X} + \frac1{3!}\comm[\Big]{\op X}{\comm[\Big]{\op X}{\partial_t\op X}} + \dotsb,
+\end{equation}
+which relates to the $\bigl(\partial_t \U_j^\dagger\bigr)\U_j$ term by $\op X = i\av[\big]{\H_j'}$.
+The numeric factors in \cref{eq:beyondld-next-hamiltonian-term1,eq:beyondld-next-hamiltonian-term2} differ slightly for $d$ nested commutators due to the integration of a factor of $\alpha^d$.
+The derivative of the time-integrated term $\av[\big]{\H_j'}$ is exactly $\H_j'$ by the standard rules of anti-derivatives.
+Altogether, this leads to a series form of \cref{eq:beyondld-next-hamiltonian-exponentials} as
+\begin{equation}\label{eq:beyondld-next-hamiltonian-sum}
+\H_{j+1} = \sum_{m=0}^\infty \frac{1}{m!}
+    \underbrace{\Bigl[i \av[\big]{\H_j'}, \dotsb \Bigl[i \av[\big]{\H_j'},}_{\text{$m$ commutators}}\mkern8mu
+    \H_j - \frac1{m+1} \H_j' \Bigr] \dotsb \Bigr].
+\end{equation}
+Since $\H_j'$ is all the order-$\eta^j$ terms from $\H_j$, the first term of the summation only contains terms of order $\eta^{j+1}$ and greater, while the subsequent elements have terms of order $\eta^{(m+1)j}$ and greater.
+
+We have now arrived at a perturbative method for approximating the true time-evolution operator for the non-linear M\o lmer--S\o rensen-like Hamiltonian of \cref{eq:beyondld-hamiltonian}.
+The result is a propagator
+\begin{equation}
+\U = \U_0\U_1\dotsm\U_d\U_{\text{error}}, \quad\text{where $\U_j = \exp\Bigl(-i\av[\big]{\H_j'}\Bigr)$ for $j>0$},
+\end{equation}
+and the $\H_j' \propto \eta^j$ are the leading-order terms of the Hamiltonians from \cref{eq:beyondld-next-hamiltonian-sum}.
+The error term is never calculated exactly, but if the expansion is made up to $\U_d$, then the generator of the error term contains only terms of higher order than $\eta^d$.
+Further, we have constructed the terms without reference to the precise forms of the driving functions of each sideband.
+
+We require that $\U = \U_\ms\U_{\text{error}}$ to make a valid gate, which imposes a series of conditions.
+The desired dynamics of $\U_\ms$ can be achieved if all the generators of the $\U_d$ are zero, except for the terms proportional to the operator $\Sy^2$ with no motional dependence.
+We expand
+\begin{equation}
+\H_j' = \eta^j\psi_j[\vec f]\Sy^2 + \eta^j \sum_{\op X}\chi_{j,\op X}[\vec f]\op X
+\end{equation}
+for some scalar functionals $\psi$ and $\chi$ of the vector of sideband driving profiles $\vec f$, and some operators that are calculated by \cref{eq:beyondld-next-hamiltonian-sum}.
+Each operator $\op X$ must individually be cancelled out, and if so, the remaining $\Sy^2$ terms can all be brought into one exponential, leaving the final conditions
+\begin{equation}\label{eq:beyondld-conditions}
+\sum_j \eta^j\psi_j[\vec f] = \frac\pi8\quad\text{and}\quad\chi_{j,\op X}[\vec f] = 0\ \text{for all $j$ and $\op X$}.
+\end{equation}
+
+Assuming that the driving profiles are implemented perfectly such that the gate operator is $\U_\ms\U_{\text{error}}$, we can calculate the minimal dependence on $\eta$.
+An expansion up to the term $\U_{d-1}$ has an error term of the form
+\begin{equation}
+\U_{\text{error}} = \exp\Bigl(-i\eta^d\op R\Bigr)
+\end{equation}
+for some unknown Hermitian $\op R$ that can itself contain factors of $\eta$.
+The gate infidelity over a basis $\ket k$ is
+\begin{equation}\begin{aligned}
+I
+    &= 1 - \sum_k \abs[\Big]{\matel[\big]{k}{\mkern2mu\U_{\text{error}}}{k}}^2\\
+    &= 1 - \sum_k \matel[\Big]{k}{\Bigl(1 - i\eta^d\op R + \order[\big]{\eta^{2d}\op R^2}\Bigr)}{k} \matel[\Big]{k}{\Bigl(1 + i\eta^d\op R + \order[\big]{\eta^{2d}\op R^2}\Bigr)}{k}\\
+    &= \order[\big]{\eta^{2d}},
+\end{aligned}\end{equation}
+since all powers of $\op R$ remain Hermitian.
+In other words, each additional step of the expansion provides the constraints needed to improve the error scaling with respect to the Lamb--Dicke parameter by a factor of $\eta^2$.
+The base gate accounts for all terms of order $\eta$ but not $\eta^2$, so its infidelity scaling is $\order[\big]{\eta^4}$.
+
+We may now discuss the factor of $1/\eta$ that we identified in \cref{eq:beyondld-driving-field}.
+At all stages of the perturbative expansion, it was crucial that we could identify the terms of lowest order in $\eta$.
+The general solutions to the M\o lmer--S\o rensen interaction all require a driving field that scales in power as $1/\eta$, which corresponds physically to matching the coupling strength of the first-order sideband.
+If this is left in the individual sideband profiles, there is a potential factor of $\eta^{-1}$ lurking that prevents \cref{eq:beyondld-next-hamiltonian-sum} from strictly increasing the powers of $\eta$.
+By extracting the negative power immediately, each step of the expansion \emph{always} increases the order $\eta$, and consequently the new conditions decouple by at least one further power.\footnote{
+    This factor of $1/\eta$ really stumped us for a long time---we kept producing schemes that did not have the error scaling we expected.
+    Without explicitly accounting for it, some terms that are truly of low order get mistakenly left in $\U_{\text{error}}$, as they look like $f^d \eta^{d+1}$.
+    This would be misclassified as order $\eta^{d+1}$, rather than $\eta$, so not set to zero.
+}
+This also motivates the choice to avoid the carrier transition; it is not dependent on $\eta$, so a driving field that scales as $1/\eta$ would re-introduce the low-order terms we sought to remove.
+
+Before moving on to find solutions to \cref{eq:beyondld-conditions}, let us briefly discuss an alternative series expansion for finding the gate conditions.
+Instead of the frame-transformation method we have just shown, which produces a propagator as a \emph{product} of successive terms, one could also have used the Magnus expansion to iterate \emph{additively} towards the generator of the propagator.
+This is equally a valid method, but as the terms are fixed by more general Lie algebra, they are not stratified by different orders of $\eta$.
+In practice, their calculations tend to be more onerous, and lead to more complex functional conditions.
+We verified that the schemes presented in this chapter also satisfy the conditions derived from a Magnus-series approach, but the problem is more easily tractable when using the product-based series described above.
+
+
+\section{Calculating solutions}
+
+The previous section gave a recipe for calculating functional conditions at each degree of $\eta$.
+To actually produce a gate scheme, however, we must first actually evaluate the conditions, then solve the resulting integral equations.
+Neither of these steps are trivial; one could calculate the conditions manually, but it is extremely tedious and error prone.
+Instead, this section offers a more computational approach, which I designed and implemented~\cite{Sameti2021Code}.
+
+\subsection{Finding constraints}
+
+We begin by representing the as-yet-unknown scalar functions $f$ by five recursive elements: a base corresponding to a specific sideband driving profile, the addition of two or more elements, the multiplication of two or more elements, the time-integral of an element, and the complex conjugation of an element.
+We represent a numeric prefactor as an exact fraction, and keep track of whether it is real or imaginary by a single flag.
+Further, we track the power of $\eta$ of each term as a non-negative integer.
+All of the mathematical operations on scalar functions needed for \cref{eq:beyondld-next-hamiltonian-sum} can be represented in this abstract form, and used to produce concrete solutions later.
+
+We must also track the operators that are present in the expansion.
+It is desirable to keep the number of unique operators tracked small, as the number of terms in each element of the sum in \cref{eq:beyondld-next-hamiltonian-sum} increases exponentially due to the multiplication.
+We can prune the collection by immediately discarding any term whose power of $\eta$ is too high for the desired level of approximation.
+To go further, we need to find some \emph{normal form} of the operators considered; we do not want to track all $\binom{n+m}{n}$ permutations of $\a^{\dagger n}\a^m$ that might arise if we can do it in fewer.
+We use the commutation rule
+\begin{equation}
+\a^m\a^{\dagger n} = \sum_{k=0}^{\min(n,m)} c_k \a^{\dagger n - k}\a^{m-k}
+\quad\text{with\ }
+c_k = \begin{cases}
+    1 & \text{for $k = 0$}\\
+    \frac{(m-k+1)(n-k+1)}{k}c_{k-1} & \text{for $k>0$},
+\end{cases}
+\end{equation}
+to rewrite any product of motional operators into a sum of terms in a defined order.
+This allows a substantial reduction; instead of the $(2n)!/(n!)^2$ different permutations of $\a^{\dagger n}\a^n$ (such as $\a^\dagger\a\dotsm\a^\dagger\a$) that we might encounter, we keep track of only the $n$ terms which have all their $\a^\dagger$ operators to the left of all their $\a$ operators.
+
+The normal form of the qubit components of the operators is simpler.
+The phase convention of the driving fields was chosen in \cref{eq:beyondld-hamiltonian} to ensure that the only qubit operator is $\Sy = \sy^{(1)} + \sy^{(2)}$.
+This satisfies $\Sy^3 = 4\Sy$, and so all of the qubit operators that appear at any level of the expansion are either $\Sy$ or $\Sy^2$, with some numerical prefactor that we are already tracking.
+We do not need to store the operators in matrix form; a simple 3-tuple \texttt{($\{1,2\}$, integer, integer)} suffices, where the terms are the powers of $\Sy$, $\a^\dagger$, and $\a$ respectively.
+
+Each level of the perturbative expansion can then be stored as a hashmap of \texttt{\{operator: coefficient\}}, where the two components use the representations as described above.
+Taken altogether, these techniques make the two operations \emph{find the coefficient of an operator} and \emph{update the coefficient} constant-time complexity, while minimising the number of operators that must be tracked.
+This is vital for the efficiency of finding very high-order constraints, even if in practice solving the constraints from arbitrarily high orders is somewhat difficult.
+
+With this formalism, all of the operators $\op X$ in \cref{eq:beyondld-conditions} will be of the form $\a^{\dagger p}\a^q\Sy^r$ where $p$ and $q$ are non-negative integers, and $r$ is either one or two.
+As an illustration, consider the $\a^\dagger\a\Sy^2$ operator in the $\U_2$ term with two sidebands driven.
+Its prefactor is\footnote{This is given in terms of the \emph{imaginary component} operation for clarity, though programmatically we need only consider the equivalent sum and conjugation operations.}
+\begin{equation}
+i\eta^2\Im\av[\big]{f_2\av{f_2^*} - 2f_1\av{f_1^*}} = 0,
+\end{equation}
+where the equality to zero is enforced by the requirement that there is no $\a^\dagger\a\Sy^2$ component in the M\o lmer--S\o rensen interaction.
+Physically, this term is the lowest-order error term that causes the entangling interaction to have a motion-dependent strength, even though this particular process does not change the phonon count.
+
+
+\subsection{Solving constraints}
+
+Finally, we arrive at a point where must solve a large quantity of iterated integrations to fully evaluate the constraints; recall that every appearance of the $\av{f}$ notation is an integration per \cref{eq:beyondld-av-notation}.
+One cannot reason about integral constraints with general functions, so at this point we must fix the form of the functions we will be working with.
+For this work, we consider only driving functions that can be parametrised as
+\begin{equation}\label{eq:beyondld-driving-form}
+f_j(t) = \sum_k c_{j,k} e^{i n_{j,k} \epsilon t}\quad\text{for constant real numbers $c_{j,k}$ and integers $n_{j,k}$},
+\end{equation}
+with the gate occurring at a time $\tau = 2\pi/\epsilon$.
+Finding a solution now is equivalent to finding a set of the variables $c_{j,k}$ and $n_{j,k}$ that satisfy all the constraints.
+The values $n_{j,k}\epsilon$ are physically detunings from the relevant sideband, which must be kept small relative to the sideband separation $\omega_z$ to avoid spurious off-resonant excitation.
+The coefficients $c_{j,k}$ are the pulse amplitudes, related to the input laser power.
+
+This form of the driving profiles is consistent with the standard driving of the base M\o lmer--S\o rensen gate, and with the multi-tone parametrisation used in \cref{sec:qubiterror}.
+The detunings are chosen to be integers such that the majority of constraints will be solved at the gate time simply because the integral $\int_0^{2\pi}\mathrm dx e^{inx}$ is zero for non-zero integers $n$.
+Some of the constraints are not of this form, however; the entangling condition in particular is not a vanishing condition, and requires that we evaluate an integral with a zero exponent.
+
+It is typically impractical to use general-purpose computer algebra software to calculate the vast quantity of integrals we find, as generic methods are simply too slow.
+We can avoid them by doing the integration more manually, though still programmatically.
+The group of functions with parametrisation \cref{eq:beyondld-driving-form} is closed under the operations \emph{addition}, \emph{multiplication} and \emph{conjugation}, but not \emph{time integration}.
+One can expand the parametrisation to include a multiplying polynomial in $t$ to keep the group closed in this case, which allows an efficient representation as
+\begin{equation}\label{eq:beyondld-function-representation}
+f_j(t) = \sum_k\sum_{\vphantom k\ell} t^\ell c_{j,k,\ell} e^{i n_{j,k} \epsilon t}.
+\end{equation}
+Non-constant polynomials are never used to drive the sidebands, only in the internal representation.
+The definite integrals of these functions can be calculated analytically using standard techniques, and the result is a function that is also of the form of \cref{eq:beyondld-function-representation}.
+If a scalar-function element of this group is represented by a hashmap \texttt{\{frequency: polynomial coefficients\}}, one can efficiently evaluate the necessary operations without invoking general-purpose symbolic manipulators.
+
+At this point, we have all the ingredients to produce candidate gates.
+During the evaluation of the integrals, we may keep track of all the different frequencies present in integrations symbolically; they are simple summations of integers.
+Some, such as in terms like $\av[\big]{f_1\av{f_1^*}}$, will unavoidably become zero in the second integration, but for all others we may proceed as if they are non-zero, and build up a set of constraints on the detunings to ensure this.
+Finding a set of detunings---the $n$ in \cref{eq:beyondld-driving-form}---that satisfy these simple constraints is enough to solve many of the complete conditions.
+The amplitudes of the different tones in the driving pulses are found by a series of simultaneous equations, dependent on the particular detunings.
+
+
+\subsection{Example solutions}\label{sec:beyondld-schemes}
+
+To improve the scaling of $\eta$ beyond the base gate, one should only need to consider terms up to and including those in $\eta^2$.
+Some of these terms arise from higher-order processes of the first red- and blue-sideband processes, and cannot be cancelled directly by shaping the amplitudes of these transitions.
+Instead, we must drive higher-order sideband transitions as well.
+While these more weakly couple the qubits and their motion, two factors conspire to assist us: the error processes are weak already, so we do not require much power on the higher-order sidebands; and we are concerned with the regime of increasing Lamb--Dicke parameter anyway, which improves the strength of these transitions.
+
+Fortuitously, monochromatically driving only two pairs of sidebands is sufficient to cancel not just the factors of $\eta^2$, but also those of $\eta^3$.
+For completeness' sake, the full list of conditions that must be zero at the gate time at this order for two sidebands is:\footnote{Recall the notation $\av*{\strut f\av{g}}$ is iterated time integration $\int_0^t\mathrm dt_1\,f(t_1)\int_0^{t_1}\mathrm dt_2\,g(t_2)$.}
+{\allowdisplaybreaks\begin{align}
+    &\av{f_1};\quad \label{eq:beyondld-c1} % Label first equation in range.
+     \av{f_2};\quad
+     \av[\big]{\av{f_1} f_2^*};\quad
+     \av[\big]{f_1 \av{f_1}};\quad
+     \Re\av[\Big]{f_1\av{f_1}\av{f_2^*} + f_1\av[\big]{f_2^*\av{f_1}}};\\[2\jot]
+%
+    &\av[\big]{f_1\av{f_2^*}};\quad
+     \av[\big]{f_1\av{f_2}};\quad
+     \av[\Big]{4i\av{f_2}\Im\Bigl(3f_1\av{f_1^*} - f_2\av{f_2^*}\Bigr) + 3f_1\av[\big]{f_2\av{f_1^*}}};\\[2\jot]
+%
+    &\Re\av[\big]{\av{f_1} \av{f_1} f_2^*};\quad
+     \av[\Big]{2f_1\av{f_1}\av{f_1^*} + \av{f_1}\Bigl(f_2^*\av{f_2} - f_1^*\av{f_1}\Bigr)- f_2\av[\big]{f_2^*\av{f_1}}};
+     \\[2\jot]
+%
+    &\!\begin{multlined}\biggl\{
+        4i\av[\big]{f_2\av{f_1^*}}\Im\Bigl(3f_1\av{f_1^*} - f_2\av{f_2^*}\Bigr)
+        -2\av{f_1^*}\av{f_2}\Bigl(3f_1^*\av{f_1} + f_2\av{f_2^*}\Bigr)\hspace*{2em}\\[-3\jot]
+        +2f_2^*\av{f_2}\av[\big]{f_2\av{f_1^*}}
+        -6f_1\av{f_1}\av[\big]{f_2^*\av{f_2}}
+        +3f_1\av{f_2}\av{f_1^*}\av{f_1^*}\biggr\};\end{multlined}\\[2\jot]
+%
+    \label{eq:beyondld-c2}
+    &\!\begin{multlined}\Re\biggl\{
+        6f_1\av{f_1}\av{f_1^*}\av[\big]{f_2^*\av{f_1}}
+        -3f_1\av{f_1^*}\av{f_1^*}\av[\big]{f_2\av{f_1^*}}\hspace*{8.8em}\\[-3\jot]
+        +2f_2\av{f_1^*}\av{f_2^*}\av[\big]{f_2\av{f_1^*}}
+        -2f_2\av[\big]{f_2^*\av{f_1}}\av[\big]{f_2^*\av{f_1}}
+        \biggr\};\end{multlined}\\[2\jot]
+%
+    &\Im\av[\big]{2f_1\av{f_1^*} - f_2\av{f_2^*}}. \label{eq:beyondld-resonant}
+\end{align}}%
+The entangling condition in functional form is
+\begin{equation}\label{eq:beyondld-third-order-entangling-functional}
+\Im\av[\Big]{f_1 \av{f_1^*} + \frac12\eta^2f_2\av{f_2^*} - 4\eta^2 \av{f_1}\Bigl(f_2^* \av[\big]{\av{f_1^*} f_2} + f_1 \av{f_1^*}^{2}\Bigr)}
+    = \frac\pi8.
+\end{equation}
+
+One possible solution to all of these
+\begin{equation}\label{eq:beyondld-drive-2}
+f_1(t) = \Omega\exp(2i\epsilon t) \quad\text{and}\quad f_2(t) = \Omega\exp(i\epsilon t),
+\end{equation}
+and the gate occurring at a time $\tau = 2\pi/\epsilon$.
+This corresponds to a gate that makes two complete loops in phase space in order to pick up the desired entangling phase.
+There are multiple different possibilities for the frequencies, but this particular pair requires the least amount of total power to achieve.
+Regardless of the value of $\Omega$, this satisfies all of the conditions of \crefrange{eq:beyondld-c1}{eq:beyondld-c2} because the two profiles are monochromatic with frequencies of $2\epsilon$ and $\epsilon$.
+The condition \cref{eq:beyondld-resonant} is satisfied because in addition to this, the amplitudes of the drivings of the two sidebands are equal.
+The amplitude $\Omega$ is determined by the entangling condition, which for these two profiles reduces to
+\begin{equation}
+3\eta^2x^4 - \bigl(1 + \eta^2\bigr)x^2 + \frac18 = 0,\quad\text{where $x=\frac\Omega\epsilon$}.
+\end{equation}
+We preferentially choose the smaller root to minimise power usage.
+
+On extension to fourth order in $\eta$, the conditions become far too long to reproduce textually.
+They are available pre-calculated in machine-readable form in a separate repository~\cite{Sameti2021Code}, along with the conditions to third order.
+Importantly, we were not able to find any solutions to all the conditions that use only monochromatically driven sidebands; the $\eta^4$-dependent conditions were too intricate.
+Instead, we add an extra $\eta$-dependent tone onto the driving of the second sideband.
+With the $1/\eta$ prefactor and the natural $\eta^2$ dependence of the second sideband, this additional term contributes only processes that scale as $\eta^2$ in lowest order, and so can be used to surgically target only the problematic higher-order conditions; it does not contribute to low-order terms at all.
+
+The lowest-power driving profiles we found that satisfy all the constraints are
+\begin{equation}\label{eq:beyondld-drive-3}\begin{aligned}
+f_1(t) &= \Omega\exp(5i\epsilon t), \qquad f_3(t) = \sqrt{\frac{3}{5}}\ \Omega\exp(i\epsilon t),\\
+f_2(t) &= \frac{\Omega}{\sqrt{5}}\Bigl(2\exp(2i\epsilon t) + \frac{7}{5}\frac{\Omega}{\epsilon}\eta\exp(-7i\epsilon t)\Bigr).
+\end{aligned}\end{equation}
+With these functions, the entangling condition to determine the ratio of $x = \Omega/\epsilon$ is
+\begin{equation}\label{eq:beyondld-three-sideband-entangling}
+    \frac{382}{1875}\eta^4x^6 - \frac{56}{75}\Bigl(2\eta^4+\eta^2\Bigr)x^4
+    +\Bigl(\eta^4 + 2\eta^2 + 2\Bigr)x^2  - \frac58 = 0.
+\end{equation}
+
+In principle, the method we have proposed in this section allows us to go to ever higher orders.
+The feasibility of this in reality is limited by the available hardware control, and the difficulty in actually solving all the constraints.
+The computational methods presented were easily able to calculate all the constraints up to $\eta^8$ on a personal laptop within a few minutes, but actually solving them all becomes very difficult.
+We show in the next section that the scaling improvements for these first two degrees of the expansion already offer very large reductions in gate infidelities, and allow us to break out of the Lamb--Dicke regime.
+
+
+\section{Simulation results}
+
+We numerically simulate the effects of the schemes proposed by \cref{eq:beyondld-drive-2,eq:beyondld-drive-3}, to verify that the infidelity scaling with respect to $\eta$ behaves as expected.
+For pure states of motion $\ket0$, $\ket1$ and $\ket2$, the gate infidelity as a function of the Lamb--Dicke parameter is shown in \cref{fig:beyondld-fidelity} for the base gate, and the third- and fourth-order schemes.
+For these purposes, all the relevant frequencies are taken to be calibrated accurately.
+The simulations were done by taking the exact Hamiltonian of \cref{eq:beyondld-general-hamiltonian}, without any of the perturbative expansion techniques.
+They do not include off-resonant sideband effects, as these can be made arbitrarily small by choosing a suitably large $\omega_z$.
+
+\begin{figure}%
+    \includegraphics{beyondld-fidelity.pdf}%
+    \caption[Gate infidelity of the strongly coupled M\o lmer--S\o rensen gate]{\label{fig:beyondld-fidelity}%
+        Gate infidelities of the generalised M\o lmer--S\o rensen scheme with one, two and three driven sidebands.
+        For each, the infidelity is plotted for initial pure motional states with zero, one and two phonons.
+        The scaling of the infidelity with respect to the Lamb--Dicke parameter is reduced from $\order{\eta^4}$ for the base gate to $\order{\eta^8}$ and $\order{\eta^{10}}$ for the two- and three-sideband gates respectively.
+        Lines proportional to these exact power laws are shown in solid grey for comparison.}%
+\end{figure}
+
+The improvement in the scaling of the infidelity with respect to $\eta$ is clear.
+All gates clearly agree with their expected scaling laws, shown in solid grey for comparison.
+The base gate scales approximately as $\eta^4$, while the third- and fourth-order schemes are dominated by effects on the order of $\eta^8$ and $\eta^{10}$ respectively.
+This is true for each of the starting pure motional states as well; one can see a non-linear dependence on the motion at the requisite order of the Lamb--Dicke parameter, but the scaling does not change.
+Of course, for sufficiently well excited thermal motion, one might see higher-order terms begin to dominate again.
+In current ion-trap labs, however, the overwhelming majority of the motional population is kept in these lower levels.
+
+\begin{figure*}%
+    \includegraphics{beyondld-thermal.pdf}%
+    \caption[Performance of the strongly coupled hot M\o lmer--S\o rensen gate]{\label{fig:beyondld-thermal}%
+        Heatmaps of the gate infidelity for a thermal motional state with varying mean phonon occupation and Lamb--Dicke parameter.
+        The three plots correspond to (a) the base gate, (b) the third-order two-sideband scheme, and (c) the fourth-order three-sideband scheme.
+        Contours denote infidelities of \num{e-3} (solid) and \num{e-5} (dashed).
+    }%
+\end{figure*}
+
+The heatmaps in \cref{fig:beyondld-thermal} show the fidelity response of the three gate schemes for highly excited thermal motional states, with mean phonon occupations up to $\bar n = 100$.
+The \qty{99.9}{\percent}-fidelity contour is presented as a guide for the range of parameters with which quantum error correction can still be achieved.
+The higher-order schemes can still produce valid gates even with mean thermal occupation on the order of a few phonons.
+This potentially allows gates to be performed that are sufficiently insensitive to the motional state that they can be performed at the Doppler-cooling limit, eschewing the need for sideband cooling.
+
+For a quantitative comparison, prior work on producing the fastest gates in trapped ions used a Lamb--Dicke parameter $\eta \approx \text{\sfrac1{10}}$, with the average motional excitation cooled to $\bar n \approx \text{\sfrac1{20}}$ or below~\cite{Schaefer2018}.
+The infidelity due to the breakdown of the Lamb--Dicke regime in a perfect gate with these parameters would be \num{1.9e-4} for the base gate.
+The two- and three-sideband schemes as described in \cref{sec:beyondld-schemes} drastically reduce this to \num{1.1e-7} and \num{7e-10} respectively---several orders of magnitude for each.
+Of course, these fidelities are highly unlikely to be the dominant effects in any experimental realisation.
+Instead, we can compare the maximum achievable parameters that maintain the same error.
+In this case, the two-sideband scheme could maintain the same error with either a Lamb--Dicke parameter up to \num{0.27} or a mean thermal occupation up to \num{6.6}, while these two numbers for the three-sideband scheme are $\eta < 0.43$ and $\bar n < 21$.
+
+
+\begin{figure}
+    \includegraphics{beyondld-phase.pdf}
+    \caption[Phase-space paths of the strongly coupled M\o lmer--S\o rensen gate]{\label{fig:beyondld-phasespace}%
+        Phase-space trajectories of the various gates (columns) both inside (top row) and far outside (bottom row) the Lamb--Dicke regime.
+        The values of the tic marks are the same for all plots on a row, though the zooms are different.
+        Line colour indicates time through the gate; it begins in the dark purple and ends in the light orange.
+        The Wigner functions of the motional states at thirds of the gate time are indicated by the dashed contour lines, scaled down to \qty{25}{\percent} (top) and \qty{5}{\percent} (bottom) of their natural sizes for visibility.
+        The squeezing effects of the higher-order sidebands can be seen via deformations of the Wigner function, but the final overlap is much better for these schemes, corresponding to reduced qubit--motion entanglement.
+    }
+\end{figure}
+
+As in \cref{sec:qubiterror}, one can gain some insight into the behaviour of the motion throughout the gate through consideration of the phase-space displacement.
+This is plotted for the three schemes in question in \cref{fig:beyondld-phasespace}, both inside and far outside the Lamb--Dicke regime.
+The qubits are in the positive-value eigenstate of the $\Sy$ operator, and the motion begins in a mixed thermal state of the given mean occupancy.
+The conventional driving scheme shows a substantial failure to close the phase-space loop at the gate time outside the Lamb--Dicke regime, where the new profiles have vast improvement, despite---or perhaps because of---severe deformities of their trajectories.
+The two- and three-sideband schemes are not single-loop gates; under perfect conditions, the number of phase-space loops is largely dictated by the ratio of the gate time to the principal detuning of the drive on the first sideband.
+The two-sideband profile is a two-loop gate, and the three-sideband profile is a five-loop gate.
+This explains the different radii of the trajectories; all three schemes enclose the same area in phase space, but the higher-order approaches repeat loops.
+This is not a requirement of the constraints, but in practice the solutions that are closest to constant-amplitude driving on each sideband and with the lowest power are typically multi-loop gates.
+
+In addition to the trajectories, the Wigner functions of the motion at various points throughout the gate are indicated by contour lines.
+For visibility, these are scaled down around their centroids four times for the top row and twenty times for the bottom.
+The initial states are perfect circles, since the motion begins in a thermal state.
+The overlap of the initial and final Wigner states is necessary for a coherent gate.
+The scaling here somewhat masks the true overlap, but the gate fidelities for the bottom row of \cref{fig:beyondld-phasespace} are \qty{71}{\percent}, \qty{89}{\percent} and \qty{97.3}{\percent} respectively.
+
+Coherently applying both first-order sidebands together generates displacements in phase space.
+This changes to a squeezing effect for the second-order sidebands, and an asymmetric skew effect for the third-order transitions.
+These effects can clearly be seen in the figure; the motion for the conventional driving pattern largely retains its shape, but the new schemes produce significant distortions during the gate operation once the Lamb--Dicke parameter is large.
+The distortions are not seen at lower values of $\eta$, since at those coupling strengths, the higher-order processes have suppressed effects on the states.
+It is only when the coupling increases that these can be seen, and it is exactly these non-linear effects that are exploited to cancel each other out at the gate time.
+
+
+\section{Additional motional modes}
+
+So far, and in our published work on this topic~\cite{Sameti2021}, we have only considered the driven motional mode.
+In reality, even if there are only two ions in the trap, there are more modes present.
+These are not directly addressed, but any transition driven on one mode implicitly drives all other modes on their carrier transition, which has its own non-linearities.
+We will now briefly discuss some modifications to the presented scheme that can account for these to low orders.
+This is introductory only; we will make several simplifying assumptions that limit the generality, as we do not yet have the tools to do this completely.
+
+Accounting for multiple modes, labelled with subscript $\ell$, the complete laser--ion interaction Hamiltonian is
+\begin{equation}
+\H = f(t)\sum_j \sp^{(j)}\prod_\ell\exp\Bigl(i\eta_{j,\ell}\bigl(\a^\dagger_\ell e^{i\kappa_\ell\omega_z t} + \a_\ell e^{-i\kappa_\ell\omega_z t}\bigr)\Bigr) + \hc.
+\end{equation}
+The $\kappa_\ell$ are the mode-dependent modifications to the motional frequencies discussed in \cref{sec:iontrap-dynamics} and listed in \cref{tab:trap-normal-modes}.
+Using the same methods as \cref{sec:beyondld-interaction}, this can be recast into a product of Fourier-series-like forms as
+\begin{equation}\label{eq:beyondld-multimode-general-hamiltonian}
+\H = f(t)\sum_j \sp^{(j)}e^{-\frac12\sum_\ell \eta_{j,\ell}^2}\prod_\ell\sum_{k=-\infty}^\infty e^{ik\kappa_\ell\omega_z t} \op A_{k,\ell}(\eta_{j,\ell}) + \hc,
+\end{equation}
+where the $\op A_{k,\ell}$ motional operators retain the same form as \cref{eq:beyondld-fourier-operators}, but act on the relevant ladder operators for the mode $\ell$.
+
+Let us assume that we are dealing with modes with incommensurate frequencies, such that there is negligible off-resonant excitation.
+Further, let us choose that the principal driving mode is the centre-of-mass (\com) mode, which has $\kappa_\com = 1$ and equal $\eta_{j,\ell} = \eta_\ell$ for all ions.
+If the $k$th transition on the \com\ mode is driven for qubit $j$, all other modes participate via their carrier transition with $k=0$.
+To illustrate, if the first-order blue transition is driven, the qubit-promotion component of the applied operator, ignoring scalar prefactors, is
+\begin{equation}
+\sp^{(j)}\op A_{1,\com} \prod_{\ell\ne\com}\op A_{0,\ell} \approx
+    i\sp^{(j)}\Bigl(\eta_\com^{}\a^{\smash\dagger}_\com - \frac12\eta^3_\com\a^{\smash\dagger2}_\com\a_\com^{}\Bigr)
+    \prod_{\ell\ne\com}\Bigl(1 - \eta^2_{j,\ell}\a^{\smash\dagger}_\ell\a_\ell^{}\Bigr).
+\end{equation}
+For modes with $\eta_\ell$ of the same order of magnitude as $\eta_\com$, this poses a problem: there are additional motion-dependent terms of total order $\eta^3$ that are not being fully cancelled.
+
+We now restrict our analysis to systems where all the relevant ions and modes have the same magnitude of $\abs{\eta_{j,\ell}} = \eta_\ell$ for each ion within a given mode.
+We are dealing only with terms that are quadratic in the Lamb--Dicke parameters of the spectator modes, so the distinction between $-\eta$ and $\eta$ for different ions is irrelevant.
+Because the spectator carrier transitions only introduce even powers of $\eta$, we seek to cancel out these processes by application of the second-order sidebands on the spectator modes.
+We wish to avoid the first-order sidebands in this case because their inclusion will cause various \emph{odd} powers of $\eta$ to appear, which would need to be handled individually.
+With the second-order sidebands, any higher-order processes from the driven transitions will quickly rise to orders of $\eta$ that we are already neglecting.
+
+The perturbative expansion method of \cref{sec:beyondld-interaction} can now be applied, with minor modifications.
+When finding the lowest-order terms in $\eta$, we now consider the order of a term $\eta_1^a\eta_2^b$ to be $a+b$, or with some alternate weighting for the different modes, if desired.
+We must also modify our prefactors for the different driving profiles of the sidebands.
+The new form of \cref{eq:beyondld-driving-field} is
+\begin{equation}\label{eq:beyondld-multimode-driving-field}
+f(t) = -i e^{\sum_\ell \eta_\ell^2/2}\sum_\ell\frac1{\eta_\ell}\sum_{k>0}\Bigl(f_{\ell,k}(t)e^{-ik\kappa_\ell\omega_z t} + (-1)^kf_{\ell,k}^*(t)e^{ik\kappa_\ell\omega_z t}\Bigr).
+\end{equation}
+We include the factors of $1/\eta_\ell$ separately, and applied only to transitions on the relevant mode, though the total exponential prefactor is always applicable.
+
+Without any correction, when considering terms up to a total order of $\eta^3$, each spectator mode contributes a thermal dependence via the operator $\Sy\eta_\ell^2\a^{\smash\dagger}_\ell\a^{}_\ell$.
+These terms can be cancelled by driving the relevant modes on their second sidebands.
+This would introduce further thermal cross-terms from higher-order processes, but at the level of $\eta^3$, only the leading-order process contributes, which we can use to cancel the unwanted spectator carrier effects.
+
+Using the same programmatic method as in the previous sections, but updated to symbolically track the multiple modes, the conditions for nulling non-linear effects were found to low order.
+These can be solved by the driving profiles
+\begin{equation}
+f_{\com,1}(t) = \Omega\exp(2i\epsilon t),\quad f_{\com,2}(t) = \Omega\exp(i\epsilon t), \quad\text{and}\quad f_{\ell,2}(t) = \Omega\exp(i\epsilon t).
+\end{equation}
+The updated entangling condition for these requires that $x = \Omega/\epsilon$ is a root of
+\begin{equation}
+3\eta_\com^2x^4 - \Bigl(1 + \sum_\ell \eta^2_\ell\Bigr)x^2 + \frac18 = 0,
+\end{equation}
+where the summation is over all driven modes, including the \com\ mode.
+Note that despite immediate appearances, this scheme does not drive the second sidebands of all modes with the same power; each is scaled by the factor of $1/\eta_\ell$ in \cref{eq:beyondld-multimode-driving-field}.
+Even the power of the transitions on the \com\ mode are slightly modified from the earlier scheme, due to the different prefactors between \cref{eq:beyondld-driving-field,eq:beyondld-multimode-driving-field}.
+This latter difference is relatively slight, however.
+
+The methods of this chapter should, in principle, allow us to cancel out higher-order effects of the carrier transitions from spectator modes, with orders $\eta^4$ and beyond.
+While I was able to calculate the conditions for at this level of approximation, actually solving all of them simultaneously is rather difficult.
+There is no particular reason to assume that it is impossible, but more insight into the potential forms of the solutions might be needed to make further progress.
+
+
+\section{Outlook}
+
+This chapter has developed a system for producing trapped-ion gates that go beyond the non-linear, weakly coupled regime.
+This has been a fundamental limit on the achievable fidelities and speeds in state-of-the-art trapped-ion quantum gates, as it could never be overcome for conventional gates, no matter the quality or precision of the experimental control apparatus.
+The method described here was a systematic approach to cancelling contributions from undesired non-linear processes, removing them order-by-order in the coupling strength.
+In principle, the methods described here can produce extremely high fidelity two-qubit gates even without protracted sideband cooling of the various motional modes.
+This opens avenues to both high-temperature and high-speed quantum information processing with trapped ions, with less reset time between different shots of circuits.
+Cooling cycles and reset times are among the longest operations in practical ion-trap quantum computing, and reducing their necessity is an important contribution, let alone the possible improvements in fidelity scaling.
+
+The method produces a set of functional constraints, and does not dictate the exact form of the solutions.
+Simulations in this chapter focussed on the simplest, lowest-power solutions, where each sideband is driven as close to monochromatically as possible.
+This is easily achievable for modern control software, but is not a true necessity.
+Mathematically, it is simple to combine this gate design with many of the current pulse-shaping techniques to make gates robust against drifting calibrations.
+This includes the multi-tone gates described in \cref{sec:qubiterror} to decouple the fidelity from qubit-frequency drifts, but also the motional-drift-resilient gates achieved in other works by amplitude shaping~\cite{Haddadfarshi2016,Webb2018,Shapira2018} or pulse shaping~\cite{Milne2020}.
+
+Let us take the multi-tone schemes of the previous chapter as an example.
+One would need to make minor modifications to the numerical optimisations to ensure that all the incommensurate-frequency conditions from \crefrange{eq:beyondld-c1}{eq:beyondld-c2} are maintained, but this can be done manually, simply by choosing the detunings used on the tones.
+The entangling condition would already have been satisfied by the optimiser, and all that is left is to fix the final condition of \cref{eq:beyondld-resonant}.
+This can be done---in theory---with a monochromatic driving profile on the second sideband; it is relatively trivial to carry out the integrations and simply set the amplitude to the correct value.
+
+It should be noted, however, that the driving on the higher-order sidebands may not itself be decoupled from the same miscalibrations if done in this manner.
+This would be more noticeable in the analytically-derived multitone schemes to make gates resilient against \emph{motional} drift~\cite{Webb2018,Shapira2018}.
+In these, one derives the exact amplitudes of the different tones by expanding the time-evolution operator in terms of the frequency error, and using the method of Lagrange multipliers to minimise the error components.
+This approach is not as straightforward when multiple sidebands are involved, but is feasible in principle.
+One could use the methods given in this chapter to approximate the generators of the propagators, and then expand each as a Taylor series to produce an---exceedingly complex---expression for the final fidelity.
+This could then be approached with the same techniques as in previous work to find a complete scheme that is both non-linear and robust against miscalibrations of the motional mode.
+
+Further, while we have discussed methods to remove the non-linearities entering from unwanted participation of spectator modes, so far these are limited to gates performed on ions that participate equally in all the considered modes.
+The normal modes in \cref{tab:trap-normal-modes} show that few pairs of ions have the same coupling to all possible modes once there are more than two ions in a trap.
+It is an open question whether this scheme could be extended to account for, say, the breathing mode of two neighbouring ions on one side of a four-ion trap.
+It is not immediately clear how to handle the unequal participation.
+In \cref{eq:beyondld-multimode-general-hamiltonian}, we still assumed a global irradiation field for the ions.
+One potential avenue of research is to address the ions individually, with suitably different laser amplitudes---one can imagine a more complex set of conditions where even the unequal mode participation might be overcome.
+As interesting as it is, however, further work in this vein is beyond the scope of this thesis.

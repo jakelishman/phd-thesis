@@ -1,0 +1,156 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{thesis}[2021/02/11 Thesis commands and colours]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{babel}
+
+\babelhyphenation{
+    de-co-her-ence
+    de-co-here
+    de-phas-ing
+    un-en-tang-led
+    wave-func-tion
+    wave-func-tions
+    wave-length
+    wave-lengths
+    wave-vec-tor
+    wave-vec-tors
+}
+
+% Font setup.
+\RequirePackage{textcomp}
+\RequirePackage[mono=false]{libertine}
+\RequirePackage[libertine,liby,subscriptcorrection,smallerops,slantedGreek,nosymbolsc]{newtxmath}
+\RequirePackage[cal=cm,bb=libus]{mathalpha}  % cal=pxtx to match Libertine is too bold for my taste
+\RequirePackage[scale=0.94,varl,varqu,narrow]{inconsolata}
+\RequirePackage{bm}
+\RequirePackage{microtype}
+
+\RequirePackage{xstring, xparse, etoolbox, trimspaces, calc}
+\RequirePackage{xcolor, siunitx, mathtools, xfrac}
+\RequirePackage[version=4]{mhchem}
+\RequirePackage[hyphens]{url}
+
+\RequirePackage{graphicx, tikz}
+
+% Solarised colours
+\definecolor{solbase03}{HTML}{002b36}
+\definecolor{solbase02}{HTML}{073642}
+\definecolor{solbase01}{HTML}{586e75}
+\definecolor{solbase00}{HTML}{657b83}
+\definecolor{solbase0}{HTML}{839496}
+\definecolor{solbase1}{HTML}{93a1a1}
+\definecolor{solbase2}{HTML}{eee8d5}
+\definecolor{solbase3}{HTML}{fdf6e3}
+\definecolor{solyellow}{HTML}{b58900}
+\definecolor{solorange}{HTML}{cb4b16}
+\definecolor{solred}{HTML}{dc322f}
+\definecolor{solmagenta}{HTML}{d33682}
+\definecolor{solviolet}{HTML}{6c71c4}
+\definecolor{solblue}{HTML}{268bd2}
+\definecolor{solcyan}{HTML}{2aa198}
+\definecolor{solgreen}{HTML}{859900}
+
+% Viridis colours, matching the linestyles used in the gnuplot palette
+\definecolor{vir1}{HTML}{440154} % dark purple
+\definecolor{vir2}{HTML}{472c7a} % purple
+\definecolor{vir3}{HTML}{3b518b} % blue
+\definecolor{vir4}{HTML}{2c718e} % blue
+\definecolor{vir5}{HTML}{21908d} % blue-green
+\definecolor{vir6}{HTML}{27ad81} % green
+\definecolor{vir7}{HTML}{5cc863} % green
+\definecolor{vir8}{HTML}{aadc32} % lime green
+\definecolor{vir9}{HTML}{fde725} % yellow
+
+\definecolor{fade}{rgb}{0.5,0.5,0.5}
+
+\colorlet{link}{vir3}
+\colorlet{redsb}{solred}
+\colorlet{bluesb}{solblue}
+\colorlet{carrier}{vir7}
+
+
+%%% Everything else.
+\sisetup{range-phrase=--, range-units=single, mode=match, print-unity-mantissa=false}
+\DeclareSIUnit[number-unit-product=]\percent{\char`\%}
+
+\newcommand*\st{\textsuperscript{st}}
+\newcommand*\nd{\textsuperscript{nd}}
+\renewcommand*\th{\textsuperscript{th}}
+\newcommand*\ms{{\textsc{ms}}}
+\newcommand*\com{{\textsc{com}}}
+
+\newcommand*\op[1]{\hat{#1}}
+\AtBeginDocument{\renewcommand*\H{\op{\mathcal H}}}
+\newcommand*\U{\op{\mathcal U}}
+\newcommand*\D{\op{\mathcal D}}
+\newcommand*\R{\op{\mathcal R}}
+\newcommand*\I{\op{\mathbb I}}
+\newcommand*\sx{\op\sigma_{\mkern-1mu x}}
+\newcommand*\sy{\op\sigma_{\mkern-1mu y}}
+\newcommand*\sz{\op\sigma_{\mkern-1mu z}}
+\renewcommand*\sp{\op\sigma_{\mkern-1mu+}}
+\newcommand*\sm{\op\sigma_{\mkern-1mu-}}
+\let\sec\S
+\renewcommand*\S{\op{S}}
+\newcommand*\Sp{\S_{\mkern-1mu+}}
+\newcommand*\Sm{\S_{\mkern-1mu-}}
+\newcommand*\Sy{\S_y}
+\renewcommand*\a{\op a}
+
+\DeclarePairedDelimiter\ket\lvert\rangle
+\DeclarePairedDelimiter\bra\langle\rvert
+\DeclarePairedDelimiterX\braket[2]\langle\rangle{#1{\delimsize\vert}#2}
+\DeclarePairedDelimiterX\matel[3]\langle\rangle{#1\mathclose{\delimsize\vert}#2\mathopen{\delimsize\vert}#3}
+\DeclarePairedDelimiterX\proj[2]\lvert\rvert{#1\mathclose{\delimsize\rangle}\mathopen{\delimsize\langle}#2}
+\DeclarePairedDelimiterX\inner[2]\langle\rangle{#1,#2}
+\DeclarePairedDelimiterXPP\displace[1]{\mathop{\D}}(){}{#1}
+
+\newcommand*\hc{\text{H.c.}}
+\newcommand*\cc{\text{c.c.}}
+\let\Re\undefined\DeclareMathOperator\Re{Re}
+\let\Im\undefined\DeclareMathOperator\Im{Im}
+\DeclareMathOperator\Tr{Tr}
+\makeatletter\DeclarePairedDelimiter\@expectfences{[}{]}\newcommand*\expect{\operatorname E\@expectfences}\makeatother
+\makeatletter\DeclarePairedDelimiter\@orderfences{(}{)}\newcommand*\order{\operatorname{\mathcal{O}}\@orderfences}\makeatother
+\DeclarePairedDelimiter\av\{\}
+\DeclarePairedDelimiter\abs\lvert\rvert
+\DeclarePairedDelimiterX\comm[2]{[}{]}{#1,\,#2}
+
+\renewcommand*\vec\bm
+
+\DeclareInstance{xfrac}{LinuxLibertineT-TLF}{text}{
+    slash-symbol-font=ptm,
+    scaling = false,
+    numerator-font = LinuxLibertineT-Sup,
+    denominator-font = LinuxLibertineT-Sup,
+    numerator-top-sep = -0.2pt,
+    denominator-bot-sep = -4.4pt,
+}
+
+% TODO: this is gross, but it seems like the spacing commands don't take effect until we enter a new math mode, hence the internal box.
+% There is probably a better way to deal with this issue.
+\newcommand*\msquash[1]{{%
+    \thinmuskip=1.5mu\relax%
+    \medmuskip=2mu plus 2mu\relax%
+    \thickmuskip=2mu plus 1mu minus 2mu\relax%
+    \mbox{$#1$}%
+}}
+
+\makeatletter
+\NewDocumentCommand\arxiv{om}{%
+    \edef\arxiv@urlprefix{\IfNoValueTF{#1}{}{#1/}}%
+    \IfSubStr{#2}{.}{%]
+        \edef\arxiv@urlid{#2}%
+        \edef\arxiv@suffix{}%
+    }{%
+        \edef\arxiv@urlid{\arxiv@urlprefix#2}%
+        \edef\arxiv@suffix{\IfNoValueTF{#1}{}{ [#1]}}%
+    }%
+    \edef\arxiv@url{https://arxiv.org/abs/\arxiv@urlid}%
+    \href\arxiv@url{ar$\mkern-2mu \chi$iv:#2\arxiv@suffix}%
+}
+\makeatother
+
+\usetikzlibrary{calc, arrows.meta, positioning, decorations.pathreplacing, decorations.pathmorphing, intersections, fit, shapes}

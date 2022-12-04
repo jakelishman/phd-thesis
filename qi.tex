@@ -1,0 +1,236 @@
+\chapter{Quantum Information}
+\label{sec:qi}
+
+The mathematical language of quantum mechanics is physicists' dialect of linear algebra.
+We are exclusively concerned with complex Hilbert spaces: vector spaces equipped with an inner product.
+This chapter is primarily intended as a reference for the notation and terminology that will be used in the rest of the thesis.
+A far more complete introduction to quantum mechanics, quantum information theory, and their mathematical backing may be found in the venerable \citet{Nielsen2010}.
+
+\section{Basic definitions}
+\label{sec:qi-basic-definitions}
+
+Pure quantum states are elements of a vector space $\mathcal V$ over the field of complex numbers $\mathbb C$.
+We write a state in \emph{bra-ket} notation as a \emph{ket} $\ket \psi$, where $\psi$ is an identifier rather than necessarily having any mathematical properties.
+As would be expected from the properties of a vector space, such systems can be in linear superpositions of states $a\ket\psi + b\ket\phi$, where $a$ and $b$ are complex numbers.
+These superpositions are the foundation of quantum coherence, which is responsible for many of the counterintuitive predictions of quantum mechanics in which a state interferes with itself~\cite{Hong1987}.
+
+An \emph{operator} $\op A$ within the same Hilbert space is a mapping $\mathcal V\to\mathcal V$, which takes one state to another by acting on it as $\op A\ket\psi = \ket\phi$.
+This thesis will not stray beyond \emph{linear} operators, so $\op A\bigl(a\ket\psi + b\ket\phi\bigr) = a\op A\ket\psi + b\op A\ket\phi$ for all complex scalars $a$ and $b$, and all states $\ket\psi$ and $\ket\phi$.
+Operators do not, in general, commute---that is $\op A\op B \ne \op B\op A$ for most $\op A$ and $\op B$.
+The \emph{commutator}, defining the difference between the two, is written $\comm{\op A}{\op B} = \op A\op B - \op B\op A$.
+Functions of operators are defined by means of their power series.
+For example, the exponential of an operator can be written as
+\begin{equation}
+\exp\bigl(\op A\bigr) = 1 + \op A + \frac1{2!} \op A^2 + \frac1{3!} \op A^3 + \dotsb,
+\end{equation}
+where loose scalars are implicitly multiplied by the suitable identity operator.
+
+The inner product between two states is written as $\braket\phi\psi$, where in contrast to mathematical notation, the operation is linear in $\ket\psi$ and conjugate-linear in $\ket\phi$.
+By the time we reach the new results in this thesis, we will be dealing solely with normalised states, such that $\braket\psi\psi = 1$.
+The inner product of a state with the output of an operator acting on a state is written $\matel\phi{\op A}\psi$, and is colloquially called a \emph{matrix element} by analogy to the matrix representation of linear algebra.
+In practice we rarely write states or operators in column-vector or matrix form, and we will often deal with infinite-dimensioned Hilbert spaces where this would be impractical at best.
+
+The object $\bra\psi$ is named a \emph{bra} and is an element of the dual of the vector space.
+Functionally, it is a linear mapping $\mathcal V\to \mathbb C$ taking elements of the vector space to the complex field, and so can apply to states and cannot commute through them.
+The object $\proj\psi\phi$ is therefore an operator in its own right.
+Operators can also act on bras, with the definition $\bigl(\bra\phi\op A\bigr)\ket\psi = \bra\phi\bigl(\op A\ket\psi\bigr) = \matel\phi{\op A}\psi$ for all $\ket\psi$ and $\ket\phi$.
+
+The \emph{adjoint} of an operator $\op A^\dagger$ is the operator such that the inner product of $\op A\ket\psi$ on $\ket\phi$ is equal to inner product of $\ket\psi$ on $\op A^\dagger\ket\phi$.
+For convenience, although it is not strictly mathematically accurate to do so, in bra-ket notation we define $\bra\psi = {\bigl(\ket\psi\bigr)}^\dagger$.
+This is a deliberate choice to simplify the inner-product notation; it is irrelevant to the physics whether $\matel\phi{\op A}\psi$ came from $\bigl(\ket\phi\bigr)^\dagger\bigl(\op A\ket\psi\bigr)$ or $\bigl(\op A^\dagger\ket\phi\bigr)^\dagger\ket\psi$.
+\emph{Hermitian} (self-adjoint) operators $\op A = \op A^\dagger$ are especially important in quantum mechanics, because all physical observables must be of this form.
+Hermitian operators have real eigenvalues, and their eigenstates form complete orthonormal bases of the respective Hilbert space.
+Throughout this thesis, the notation $\op A + \hc$ means $\op A + \op A^\dagger$, with $\hc$ standing for \emph{Hermitian conjugate}.
+
+A \emph{unitary} operator is an operator $\U$ such that $\U\U^\dagger = \U^\dagger\U = 1$, \textit{i.e.}\ an operator whose adjoint is its inverse.
+These operators are inner-product-preserving, and consequently all valid evolutions taking one physical pure state to another are unitary, including quantum logic gates.
+All unitary operators can be written as $\U = \exp(i\op H)$ for some Hermitian operator $\op H$.
+Writing $\op H$ in terms of its eigenvalue decomposition $\op H = \sum_j \lambda_j \proj{\lambda_j}{\lambda_j}$ for orthonormal $\ket{\lambda_i}$, it is clear that that eigenvalues of this $\U$ are $e^{i\lambda_j}$, which have unity magnitude.
+This form of operator frequently appears when describing evolution of a quantum system.
+
+It is often the case that a quantum-mechanical system is subject to some classical interaction that reduces the quantum coherence and introduces in its place some classical probability of being in a particular state.
+These states are represented by a \emph{density operator} $\op\rho$ as
+\begin{equation}
+\op\rho = \sum_j p_j \proj{\psi_j}{\psi_j},
+\end{equation}
+where the $\{p_j\}$ are classical probabilities that sum to one.
+The density-operator representation of a pure state has exactly one nonzero probability, and the corresponding $\ket{\psi_j}$ is the vector representation of the pure state.
+If an operator were applied to the state such that $\ket{\psi_j}\to\op A\ket{\psi_j}$, the new density operator would be $\op A\proj{\psi_j}{\psi_j}\op A^\dagger$, illustrating that density operators evolve as $\op\rho\to\op A\op\rho\op A^\dagger$.
+
+A quantum system can also comprise more than one separate physical system.
+Formally, the joint space is the tensor product of the component vector spaces $\mathcal V_1 \otimes \mathcal V_2$, which is itself a vector space.
+We will typically write kets in a joint space by catenating the labels, such as $\ket g\otimes\ket g = \ket{gg}$, or by juxtaposition, such as $\bigl(\ket g + \ket e\bigr)\bigl(\ket g + \ket e\bigr) = \ket{gg} + \ket{ge} + \ket{eg} + \ket{ee}$.
+Operators on a joint space will similarly be juxtaposed, and if an operator is missing for a particular subspace, it is implicitly the identity.
+In cases where there could be ambiguity between joint operators and composed operator action, we will use the tensor-product symbol $\otimes$ and leave composition as-is.
+
+All states in a tensor-product space can be written as $\ket\psi = \sum_{j,k} c_{j,k} \ket j\otimes\ket k$, where the sum is over arbitrary orthonormal bases of the two subspaces.
+This decomposition is not unique; it is dependent on the bases chosen.
+A state is said to be \emph{entangled} when there must be more than one nonzero element in the sum, regardless of its magnitude, while unentangled states are called \emph{separable}.
+This can be extended to a hierarchical structure, accounting for the number of entangled subsystems~\cite{Szalay2015}, and there is a great body of literature considering the verification, distillation and use of entanglement as a resource~\cite{Horodecki2009,Chitambar2019,Dur2007}.
+
+A very similar approach allows us to define multilevel \emph{coherence}, which is defined with respect to a particular choice of basis, rather than the fairly natural separation of physical systems used in entanglement.
+Given a basis $\{\ket j\}$, a pure state is called $k$-coherent if at least $k$ basis vectors have nonzero overlap with it.
+For a mixed state $\op\rho$ to be $k$-coherent, all its possible decompositions must contain at least one pure state that is $k$-coherent or greater.
+Precisely determining the level of coherence of a large system is nontrivial, even if the density operator is known exactly.
+This is the focus of \cref{sec:coherence}.
+
+
+\section{Qubits and harmonic-oscillator systems}
+
+Only two types of quantum system will be used in this thesis: qubits and quantum harmonic oscillators.
+We will briefly cover the notation used to work with these.
+
+The name \emph{qubit} is used to describe a physical object whose states reside in a two-dimensional complex Hilbert space, for example a two-level ion.
+We will label the two basis states $\ket g$ and $\ket e$ (for \emph{ground} and \emph{excited}), to reduce confusion with the harmonic oscillator number states.
+In this form, the Pauli operators are
+\begin{equation}
+    \sx = \proj eg + \proj ge, \quad
+    \sy = -i\proj eg + i\proj ge,\quad\text{and}\quad
+    \sz = \proj ee - \proj gg,
+\end{equation}
+where $\sz$ is related to the free evolution of the system, while $\sx$ and $\sy$ are related to transitions between the two states.
+The Pauli operators are both Hermitian and unitary, so each of their squares is simply the identity operator.
+The multiplication of distinct Pauli operators satisfies $\op\sigma_a\op\sigma_b = i\varepsilon_{abc}\op\sigma_c$ for $a$, $b$ and $c$ in $\{x,\,y,\,z\}$, where $\varepsilon$ is the Levi-Civita symbol with parity defined by $\varepsilon_{x\mkern-1mu yz}=1$.
+When dealing with coupled systems, we will also use two related operators
+\begin{equation}
+    \sp = \proj eg = \frac12(\sx + i\sy)\quad\text{and}\quad
+    \sm = \proj ge = \frac12(\sx - i\sy).
+\end{equation}
+Taken individually these are non-Hermitian and non-unitary, representing the separate excitation and de-excitation processes, and will be useful in rotating-wave approximations.
+
+The eigensystem of a quantised harmonic oscillator is spanned by the Fock or \emph{number} basis.
+We label the states with an integer $n$ as $\ket n$, where $\ket 0$ is the ground state, and so on.
+The principal operators when working with these states are the annihilation $\a$ and creation $\a^\dagger$ operators, also called \emph{ladder} operators, that respectively remove and add a phonon of motion to the system by the relations
+\begin{equation}\label{eq:qi-ladder}
+\a\ket n = \sqrt n\ket{\msquash{n-1}}\quad\text{and}\quad\a^\dagger\ket n = \sqrt{n+1}\ket{\msquash{n+1}}.
+\end{equation}
+Note that $\a\ket 0 = 0$; the state cannot be lowered beyond the ground state.
+The two operators do not commute, but satisfy $\comm\a{\a^\dagger} = 1$.
+The Hermitian operator $\a^\dagger\a$ is named the \emph{number} operator, as it clearly follows from \cref{eq:qi-ladder} that $\a^\dagger\a\ket n = n\ket n$.
+
+Physically, the two ladder operators arise from the diagonalisation of the quantum harmonic oscillator Hamiltonian, and are defined by $\a = \op x - i\op p$ for nondimensionalised position $\op x$ and momentum $\op p$.
+Following on, the \emph{displacement} operator
+\begin{equation}\label{eq:qi-displace}
+\displace\alpha = \exp\bigl(\alpha\a^\dagger - \alpha^*\a\bigr)
+\end{equation}
+displaces a state by an amount $\alpha$ in phase space, where the real and imaginary components correspond to the positional and motional displacements respectively.
+This is unitary, but not Hermitian---instead, $\D^\dagger(\alpha) = \D(-\alpha)$, which is geometrically intuitive.
+We will frequently use phase space to make qualitative interpretations of ion-trap gate operations, since it encodes the first orders of the behaviour of motional modes.
+
+
+\section{Measurements}
+\label{sec:qi-measurement}
+
+Manipulation of quantum systems is all very well, but we cannot gain any information until we perform a measurement.
+These observations are non-unitary, and in general collapse a state down to subspaces associated with each possible outcome, destroying coherence.
+The majority of possible measurements of quantum systems are \emph{projective}, where the possible outcomes for a particular measurement are each defined by a positive-semidefinite Hermitian operator $\{\op P_j\}$ such that $\op P_j \op P_k = \delta_{jk}\op P_j$, and $\sum_j\op P_j = 1$.
+These requirements imply that the $\op P_j$ partition the total Hilbert space into a collection of orthogonal subspaces, and each projector can be written $\op P_j = \sum_k^{\vphantom{(j)}} \proj{\psi^{(j)}_k}{\psi^{(j)}_k}$, where the states with equal $j$ are an orthonormal basis of the relevant subspace.
+The rank of such an orthogonal projector is the number of states required in its sum representation.
+
+Real quantum systems can often perform only one type of measurement: projection onto some logical basis.
+There is typically one natural basis that encodes a count or choice between physical items, so the associated measurement is simply observing which level a system is in, or how many photons or phonons exist.
+For qubits, this logical basis is typically chosen to coincide with the Pauli $Z$ basis, and the two measurement outcomes are associated with the operators $\proj gg$ and $\proj ee$.
+When investigating more information-theoretic results, however, it is appropriate to consider the more general form of measurement.
+
+The operators associated with a measurement's outcomes being Hermitian positive-semidefinite and summing to the identity operator is analogous to a classical probability distribution.
+This is axiomatic.
+The requirement that the separate measurement outcomes are orthogonal, however, is not.
+Relaxing this takes us to the most general case, that of a \emph{positive operator-value measure} (\textsc{povm}).
+Such measures comprise a set of operators $\{\op A_j\}$ that are positive semi-definite Hermitian and sum to the identity.
+Notably, this allows a degree of overlap between the measurement operators.
+Unlike for projective measurements, performing a measurement in a \textsc{povm} and obtaining the outcome associated with $\op A_1$ does not preclude a measurement on the resulting state returning $\op A_2$.
+This can be useful in situations where two states are not perfectly distinguishable, but one wishes to know with certainty which has been received at the cost of sometimes obtaining an inconclusive result.
+Taking a \textsc{povm} comprising of scaled projectors onto the two states \emph{orthogonal} to the targets and the remainder operator needed for completeness, a result of either of the first two operators unambiguously determines the input state, while the latter gives no information.
+We will use this formalism later when dealing with a similar problem: unambiguously validating the presence of coherence in a system, without risk of false negatives.
+
+
+\section{Time evolution}
+
+All quantum mechanical systems obey the Schr\"odinger equation
+\begin{equation}\label{eq:qi-time-evolution-commuting-hamiltonian}
+i\hbar\partial_t\ket\psi = \H\ket\psi,
+\end{equation}
+where $\partial_t$ is the partial derivative with respect to time and $\hbar \approx \qty{1.05e-34}{\J\s}$ is the reduced Planck constant.
+The Hermitian operator $\H$ is the Hamiltonian of the system, which corresponds to its total energy and determines its dynamics.
+Equivalently, we can define a unitary operator $\U$ that represents the time evolution by the solution of $i\hbar\partial_t\U = \H\U$, which allows us to write $\ket{\psi(t)} = \U(t)\ket{\psi(0)}$.
+As with any other operator, mixed states evolve as $\U\op\rho\U^\dagger$ in a closed system.
+
+If the Hamiltonian commutes with itself at different times, \textit{i.e.}\ $\comm{\H(t_1)}{\H(t_2)} = 0$ for all times $t_1$ and $t_2$, the time-evolution operator is explicitly given by
+\begin{equation}
+\U(t) = \exp\biggl(-\frac i\hbar\int_0^t\mathrm dt'\,\H(t')\biggr).
+\end{equation}
+For general time-dependent Hamiltonians, however, the time-evolution operator must be found by a general solution of the Schr\"odinger equation considering each of the basis states, or some perturbative expansion.
+
+In some cases, it is possible to reduce the Hamiltonian to a solvable form by means of a frame transformation.
+Unitary operators can be interpreted as a mapping from one basis of a vector space to another, so taking the state $\ket\psi$ to $\U\ket\psi$ is an analogue to changing the reference frame in classical mechanics.
+The Hamiltonian is modified by this transformation.
+The Schr\"odinger equation for these new states must be satisfied by a new Hamiltonian $\H'$, so
+\begin{equation}
+\H'\U\ket\psi = i\hbar\partial_t \bigl(\U\ket\psi\bigr) = i\hbar\bigl(\partial_t\U\bigr)\ket\psi + i\hbar\U\partial_t\ket\psi.
+\end{equation}
+The last term contains the time derivative from the original Schr\"odinger equation, and so by inserting identity operations explicitly as $\U^\dagger\U$, we reach
+\begin{equation}\label{eq:qi-frame-transformation}
+\H' = \U\H\U^\dagger + i\hbar\bigl(\partial_t\U\bigr)\U^\dagger.
+\end{equation}
+This is particularly useful for the common pattern of Hamiltonians that can be split into \emph{system} and time-dependent \emph{interaction} components as $\H = \H_{\text{sys}} + \H_{\text{int}}$, where the system alone can be solved exactly.
+Typically only the effect of the interaction is interesting, and the system component can be \emph{rotated out} by a frame transformation of the adjoint of its unitary dynamics $\U_{\text{sys}}^\dagger$.
+For a time-invariant system Hamiltonian, this is explicitly
+\begin{equation}
+\H' = e^{i\H_{\text{sys}}t/\hbar} \H_{\text{int}} e^{-i\H_{\text{sys}}t/\hbar}.
+\end{equation}
+
+A few exponentials can be evaluated exactly via their power series into simple sums of operators, such as exponentials of Pauli operators.
+More commonly, the exponentials must be massaged into a more convenient form.
+If $\op A$ and $\op B$ do not commute, then $e^{\op A + \op B} \ne e^{\op A}e^{\op B}$.
+Instead, one relates $e^{\op A}e^{\op B}$ to a single exponential $e^{\op C}$ by the Baker--Campbell--Hausdorff formula~\cite{Bonfiglioli2012}:
+\begin{equation}
+\op C = \op A + \op B + \frac12\comm{\op A}{\op B} + \frac1{12}\Bigl(\comm[\big]{\op A}{\comm{\op A}{\op B}} - \comm[\big]{\op B}{\comm{\op A}{\op B}}\Bigr) +\,\dotsb.
+\end{equation}
+A formal proof of this requires too much Lie theory to be worth reproducing here, but can be found in the works of \citet{Bonfiglioli2012}, and \citet{Hall2015}.
+We will make much use of a result following from this formula, that
+\begin{equation}\label{eq:qi-bch-lemma}
+e^{\op A}\op B e^{-\op A} =
+    \op B + \comm{\op A}{\op B}
+    + \frac1{2!}\comm[\big]{\op A}{\comm{\op A}{\op B}}
+    + \frac1{3!}\comm[\Big]{\op A}{\comm[\big]{\op A}{\comm{\op A}{\op B}}}
+    +\,\dotsb,
+\end{equation}
+of which the utility for unitary frame transformations is obvious.
+
+When the solution of a Hamiltonian is not analytically tractable with exact frame-transformation methods, it becomes useful to pursue perturbative expansions.
+The Magnus expansion considers the solution of the operator Schr\"odinger equation of the form $\U(t) = \exp\op M(t)$ for some $\op M = \sum_j \op M_j$, where the successive terms are associated with increasing order.
+By inspection of the differential equation and the solution ansatz, we can recast the problem to
+\begin{equation}
+\bigl(\partial_t e^{\op M}\bigr)e^{-\op M} = -\frac i\hbar\H.
+\end{equation}
+Similarly to before, we will defer to prior work for a complete description~\cite{Magnus1954}.
+Qualitatively, one evaluates the derivative of the exponential map to find an infinite series of the form
+\begin{equation}
+\partial_t \op M = c_1 \H + c_2 \comm{\H}{\op M} + c_3 \comm[\big]{\comm{\H}{\op M}}{\op M} +\,\dotsb.
+\end{equation}
+Direct integration yields a recursive definition of $\op M$, from which we identify the Magnus terms:
+\begin{align}
+    \op M_1 &= \textstyle -\frac i\hbar\int_0^t\!\mathrm dt_1\,\H(t_1) \notag\\[0.5em]
+    \op M_2 &= \textstyle -\frac1{2\hbar^2}\!\int_0^t\!\mathrm dt_1\int_0^{t_1}\!\mathrm dt_2\, \comm{\H(t_1)}{\H(t_2)} \label{eq:qi-magnus}\\[0.5em]
+    \op M_3 &= \textstyle 
+        \frac i{6\hbar^3}
+        \!\int_0^t\!\mathrm dt_1\int_0^{t_1}\!\mathrm dt_2\int_0^{t_2}\!\mathrm dt_3\,
+        \Bigl(\comm[\big]{\H(t_1)}{\comm{\H(t_2)}{\H(t_3)}}
+        + \comm[\big]{\H(t_3)}{\comm{\H(t_2)}{\H(t_1)}} \Bigr).\notag\\
+&\vdotswithin{\mathrel{=}}\notag
+\end{align}
+The Magnus expansion is preferable to many other possibilities as it maintains the unitarity of the operator even when the series is truncated.
+We will visit alternative perturbative expansions, which share this property, in \cref{sec:beyondld} to evaluate and control complex dynamics in two-qubit operations in trapped ions.
+
+The Schr\"odinger equation is strictly accurate for all (non-relativistic) quantum systems, but relies on all subspaces being explicitly accounted for.
+In general, a system will undergo unwanted interactions with a much larger environment.
+This describes an \emph{open} quantum system, as opposed to the \emph{closed} systems hitherto considered.
+There are several formalisms for investigating these behaviours~\cite{Breuer2002}, but our needs on this front are rather limited.
+We will need only consider weak perturbations, where we can assume the Born--Markov conditions that the system and environment are weakly coupled and remain separable at all times, and any correlations within the environment decay much quicker than any in the system.
+
+Under this approximation, the time evolution of the density operator for only the system of interest can be described by the Lindblad master equation~\cite{Manzano2020}:
+\begin{equation}\label{eq:qi-lindblad-master}
+\partial_t\op\rho = -\frac i\hbar\comm[\big]{\H}{\op\rho} + \frac12\sum_j\bigl(2\op L_j^{}\op\rho\op L_j^{\smash\dagger} - \op L_j^{\smash\dagger}\op L_j^{}\op\rho - \op\rho\op L_j^{\smash\dagger}\op L_j^{}\bigr).
+\end{equation}
+The $\{\op L_j\}$ are \emph{collapse} or \emph{dissipation} operators, which represent the effects of the environment on the system.
+The dominant effects that we shall consider are motional heating, associated with $\a^\dagger$, and motional dephasing, associated with $\a^\dagger\a$; in the trapped-ion system in use at Imperial, the time-scales of qubit noise processes are far longer than those of ion motion.

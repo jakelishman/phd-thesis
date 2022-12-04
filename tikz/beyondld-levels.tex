@@ -1,0 +1,118 @@
+\begin{tikzpicture}[
+    every node/.style={
+        inner sep=0mm,
+    },
+    laser/.style={
+        thick,
+        {Latex}-{Latex},
+    },
+    level/.style={
+        draw=black,
+        thick,
+    },
+    level-det/.style={
+        draw=black!80,
+    },
+    ket-label/.style={
+        above=0.2em,
+    },
+    extension/.style={
+        draw=black,
+        densely dotted,
+    },
+    edim/.style={
+        draw=black,
+        {Stealth[scale=0.7]}-,
+    },
+    second order/.style={
+        dashed,
+    },
+]
+\newcommand*\colsepfrac{.05}%
+\pgfmathsetmacro{\colfrac}{.2*(1 - 4*\colsepfrac)}%
+\pgfmathsetmacro{\fullfrac}{.8*\colfrac}%
+\pgfmathsetmacro{\semifrac}{.42*\colfrac}%
+\pgfmathsetmacro{\semisepfrac}{\colfrac - 2*\semifrac}%
+\newlength\freqmot\setlength\freqmot{0.025\figwidth}%
+\newlength\freqqub\setlength\freqqub{0.15\figwidth}%
+\newlength\freqdet\setlength\freqdet{0.3\freqmot}%
+
+\foreach \i in {0, ..., 4} {
+    \coordinate (n\i-colbottom)
+        at ($\i *(\colfrac\figwidth + \colsepfrac\figwidth, 0) + .5*(\colfrac\figwidth, 0)$);
+    \path [level]
+        ($(n\i-colbottom) - .5*(\fullfrac\figwidth, 0) + (0, \i\freqmot)$)
+        coordinate (n\i-gg-l)
+        -- coordinate [midway] (n\i-gg) ++(\fullfrac\figwidth, 0)
+        coordinate (n\i-gg-r);
+    \path [level]
+        ($(n\i-colbottom) - .5*(\fullfrac\figwidth, 0) + (0, \i\freqmot + 2\freqqub)$)
+        coordinate (n\i-ee-l)
+        -- coordinate [midway] (n\i-ee) ++(\fullfrac\figwidth, 0)
+        coordinate (n\i-ee-r);
+    \path [level]
+        ($(n\i-colbottom) - .5*(\colfrac\figwidth, 0) + (0, \i\freqmot + \freqqub)$)
+        coordinate (n\i-eg-l)
+        -- coordinate [midway] (n\i-eg) ++(\semifrac\figwidth, 0)
+        coordinate (n\i-eg-r);
+    \path [level]
+        ($(n\i-colbottom) + .5*(\semisepfrac\figwidth, 0) + (0, \i\freqmot + \freqqub)$)
+        coordinate (n\i-ge-l)
+        -- coordinate [midway] (n\i-ge) ++(\semifrac\figwidth, 0)
+        coordinate (n\i-ge-r);
+    \coordinate (n\i-colbottom)
+        at ($\i *(\colfrac\figwidth + \colsepfrac\figwidth, 0) + .5*(\colfrac\figwidth, 0)$);
+}
+\foreach \i in {0, 1, 3, 4} {
+    \path [level-det]
+        ($(n\i-eg-l) + 2*(0, \freqdet) - \i *(0, \freqdet)$)
+        coordinate (n\i-det-l)
+        -- coordinate [midway] (n\i-det)
+        ($(n\i-ge-r) + 2*(0, \freqdet) - \i *(0, \freqdet)$)
+        coordinate (n\i-det-r);
+}
+
+\foreach \i/\n in {0/n{-}2, 1/n{-}1, 2/n, 3/n{+}1, 4/n{+}2} {
+    \path let \p1=(n0-colbottom), \p2=(n\i-colbottom) in
+        ($(\x2, \y1) + -2.25*(0, \freqmot)$) coordinate (n\i-label);
+    \node at (n\i-label) {$\ket{\n\vphantom1}$};
+}
+
+\node [ket-label, below=0.4em] at (n2-gg) {$\ket{ee}$};
+\node [ket-label] at (n2-eg) {$\ket{eg}$};
+\node [ket-label] at (n2-ge) {$\ket{ge}$};
+\node [ket-label] at (n2-ee) {$\ket{ee}$};
+
+%% Extension lines and error definitions
+\makeatletter
+\newcommand*\@extension[3]{%
+    \path let \p1=(#2), \p2=(#3) in
+        [extension] (\x1, \y1) -- (#1*\x1+\x2-#1*\x2, \y1)
+        (#1*\x1+\x2-#1*\x2, \y2) -- (\x2, \y2);}
+\newcommand*\edimension[5][.5]{%
+    \@extension{#1}{#2}{#3}
+    \path let \p1=(#2), \p2=(#3) in [edim] (#1*\x1+\x2-#1*\x2, \y1) -- ++(0, 2mm)
+        node [right, #5] {#4};
+    \path let \p1=(#2), \p2=(#3) in [edim] (#1*\x1+\x2-#1*\x2, \y2) -- ++(0, -2mm);}
+\makeatother
+\edimension{n1-gg-l}{n0-gg-r}{$\omega_z$}{xshift=0.2em};
+    
+\draw [double, {Latex}-{Latex}, solviolet, very thick]
+    (n2-gg) --
+    node [midway, right=0.3em, yshift=-0.8em] {$\Gamma(n)$}
+    (n2-ee);
+    
+\draw [laser, bluesb]
+    (n2-gg) -- node [pos=0.4, xshift=-1em] {$f_1$} (n3-det);
+\draw [laser, bluesb, second order]
+    (n2-gg) -- node [pos=0.36, xshift=1.5em] {$f_2$} (n4-det);
+\draw [laser, redsb]
+    (n2-gg) -- node [pos=0.53, xshift=1.3em] {$f_1^*$} (n1-det);
+\draw [laser, redsb, second order]
+    (n2-gg) -- node [pos=0.63, xshift=2.5em] {$f_2^*$} (n0-det);
+
+\draw [laser, bluesb] (n1-det) -- (n2-ee);
+\draw [laser, bluesb, second order] (n0-det)  -- (n2-ee);
+\draw [laser, redsb] (n3-det) -- (n2-ee);
+\draw [laser, redsb, second order] (n4-det) -- (n2-ee);
+\end{tikzpicture}

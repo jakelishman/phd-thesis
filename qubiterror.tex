@@ -1,0 +1,475 @@
+\chapter{Robust Entangling Gates}
+\label{sec:qubiterror}
+
+\begin{coauthorship}
+All the work in this chapter was done by me, with supervision by Florian Mintert.
+The results here were also published as \intextcite{Lishman2020}.
+\end{coauthorship}
+
+
+We described the M\o lmer--S\o rensen scheme for generating entanglement in trapped ions in \cref{sec:iontrap-ms-gate}.
+Its development at the time presented a large advance for quantum logic gates in this medium, relaxing the previous requirement~\cite{Cirac1995} that the coupled motional modes were cooled perfectly to the their ground state~\cite{Sorensen1999}, although it originally came at the penalty of adiabaticity.
+The more strongly coupled version of the interaction described by \cref{eq:iontrap-ms-u} was developed shortly after~\cite{Sorensen2000}, and is now by far the more common method for applying the gate~\cite{Gaebler2016,Harty2014,Debnath2016,Wright2019}.
+This trades off increased sensitivity to fluctuations in the control frequencies for significantly faster gate operation.
+Faster gates mean less time in which the quantum systems can decohere, so in practice this exchange is always worthwhile.
+Still, it is entirely valid to ask \emph{can we reduce the sensitivity to errors?}
+
+This is of course not a new question.
+The most obvious method of increasing fidelity is to improve the quality of the controlling electronics and drive fields, and to reduce any environmental effects that could cause frequency shifts.
+Technology on this front is always improving, allowing experimentalists to move from the earliest fidelities of around \qty{80}{\percent}~\cite{Haljan2005}, to \qty{99}{\percent} shortly after~\cite{Benhelm2008}, to the most modern realisations in excess of \qty{99.9}{\percent}~\cite{Gaebler2016}.
+Tighter control tolerances are not solely responsible.
+Recent implementations of these trapped-ion gates all use some additional techniques to eke out more speed, such as addressing multiple motional modes simultaneously~\cite{Choi2014,Arrazola2018} and driving Raman transitions closer to resonance to increase the transfer rate~\cite{Ballance2016}.
+
+One can attain even greater fidelity by accepting that noise will always be present, and minimising not just its source but its ability to affect the system.
+The classical spin-echo technique in nuclear magnetic resonance~\cite{Hahn1950} is as applicable to modern quantum information processors as it was then, whether in qubit idle periods or during gates, now under the name \emph{dynamical decoupling}~\cite{Viola1998}.
+These techniques are typically applied in microwave-driven gates~\cite{Bermudez2012,Harty2016,Sutherland2019}.
+Beyond this, one can apply optimal-control techniques to shape control fields, to suppress undesired effects at various points in the gate application.
+There are a variety of different parametrisations for this, from simple smoothing of the pulse windows~\cite{Benhelm2008} to more complex schemes based on piecewise-constant functions~\cite{Schaefer2018}, or amplitude~\cite{Haddadfarshi2016,Webb2018,Shapira2018} or phase modulation~\cite{Zarantonello2019,Milne2020}.
+
+Such error-mitigation techniques continue to grow in importance.
+All proposals to enlarge ion-trap quantum computers inevitably increase the complexity of the systems, whether this is by shuttling ions between modules~\cite{Lekitsch2017} or linking traps with photonic interconnects~\cite{Monroe2014,Stephenson2020}.
+This leads to greater physical differences and larger quantities of bulk optics over which the control fields must be kept coherent, while attempts to miniaturise traps necessarily lead to greater heating rates and neighbour interactions via crosstalk~\cite{Bruzewicz2019}.
+
+This chapter presents an investigation from early in my degree into the applicability of Fourier-series \emph{multi-tone} parametrisations of the M\o lmer--S\o rensen gate for suppression of mis-sets in the qubit frequencies.
+The scheme is applicable to any physical encoding of the qubits, whether they are driven by microwaves, a single laser targeting a dipole-forbidden transition, or two lasers in a Raman configuration.
+It requires no additional fields, only shaping of the existing control; the only necessity over the original implementation of the M\o lmer--S\o rensen interaction~\cite{Sackett2000} is an arbitrary waveform generator.
+We consider only the case of gates that do not increase the required peak power, consistent with realistic experimental considerations.
+This method, in theory, can improve the infidelity scaling of the gate with respect to the frequency error, given a sufficient number of tones in the control fields.
+While we had originally hoped to extend a previous experimental collaboration with the group at the University of Sussex~\cite{Webb2018}, they had moved on to other priorities and we were unable to test it experimentally.
+
+
+
+\section{Model}
+
+The Hamiltonian of the trapped-ion system was given in \cref{eq:iontrap-lab-hamiltonian}, under the critical assumption that all qubits had the same frequency.
+We cannot necessarily assume this in the general case.
+Instead, let us consider the case of two co-trapped ions, whose frequencies are described by $\{\omega_{eg,\,i}\}$.
+In an ideal situation for ions of the same species, the frequencies should be identical for some known $\omega_{eg}$.
+It is more convenient, then, to think of the two ions as having qubit frequencies slightly detuned from this ideal case, by some small amount $\bigl\{\delta_{eg}^{(j)}\bigr\}$.
+We then can more explicitly encode the symmetry of the problem under the exchange of ions by working with a single quantity, the frequency splitting $\delta_{\text{spl}} = \bigl(\delta_{eg}^{(1)} - \delta_{eg}^{(2)}\bigr)/2$ between the two qubits.
+
+This prompts some modifications to the interaction Hamiltonian of \cref{eq:iontrap-interaction-hamiltonian}, principally that the sum over the individual qubit operators is no longer the simple $e^{-i\omega_{eg}t}\sum_j\sp^{(j)}$, but must take into account the separate frequencies on each ion.
+Further, as we will be moving to shape the control fields, we replace the simple laser driving with an abstract profile $f(t)$.
+Doing so allows the possibility that the driving will be defined with respect to miscalibrations of the average qubit frequency and motional frequency as well; we introduce new factors of $\delta_{\text{avg}} = \bigl(\delta_{eg}^{(1)} + \delta_{eg}^{(2)}\bigr)/2$ and $\delta_z$ respectively to account for these.
+This leaves a new interaction Hamiltonian of
+\begin{equation}\label{eq:qubiterror-interaction-hamiltonian}
+\H_{\text{int}}/\hbar = f(t) e^{i(\omega_{eg} + \delta_{\text{avg}})t}
+    \Bigl(e^{i\delta_{\text{spl}} t}\sp^{(1)}
+          + e^{-i\delta_{\text{spl}} t}\sp^{(2)}\Bigr) \displace[\Big]{i\eta e^{i(\omega_m + \delta_m)t}} + \hc,
+\end{equation}
+where $\displace\alpha = \exp\bigl(\alpha\a^\dagger - \alpha^*\a\bigr)$ is the displacement operator from \cref{eq:qi-displace}.
+The effects of these on the energy levels for a standard M\o lmer--S\o rensen gate targeted exactly on $\omega_{eg}$ and $\omega_z$ is shown in \cref{fig:qubiterror-levels}.
+
+\begin{figure}%
+    \includegraphics{qubiterror-levels.pdf}%
+    \caption[Energy-level diagram of two co-trapped ions]{\label{fig:qubiterror-levels}%
+        The effects of different frequency offsets on the operation of the M\o lmer--S\o rensen gate.
+        This is more complete version of \cref{fig:iontrap-ms-levels}, taking into account the new error terms introduced in \cref{eq:qubiterror-interaction-hamiltonian}.
+        Thick black lines are the ideal energy levels targeted by the driving, while thin lines are the true structure.
+        The qubit errors $\delta_{\text{avg}}$ and $\delta_{\text{spl}}$ cause the two-photon process to be off-resonant for some initial states, while a motional error $\delta_z$ causes a shift from the ideal virtual level.
+}%
+\end{figure}
+
+In practice, one must always apply control fields that are close to resonant with particular sidebands to drive meaningful dynamics.
+We rewrite the most general field $f(t) = \tilde f(t) e^{-i\omega_s t}$, re-using the sideband selection frequency $\omega_s = \omega_{eg} + n\omega_z$ discussed in \cref{sec:iontrap-sidebands}.
+The remaining time dynamics in the $\tilde f(t)$ are assumed to be slow compared to the sideband separation, and the selection frequency is deliberately defined in terms of the calibration parameters $\omega_{eg}$ and $\omega_z$, rather than the true values of the average and the motion frequency, to mimic a real experimental setup.
+The M\o lmer--S\o rensen interaction is achieved by applying two component driving fields: $f_r = \tilde f^*$ on the red sideband, and $f_b = \tilde f$ on the blue.
+This leads to a complete description of the M\o lmer--S\o rensen Hamiltonian within the Lamb--Dicke approximation, in terms of all of these frequency errors, as
+\begin{equation}\label{eq:qubiterror-ms-hamiltonian}
+\H_{\ms} = -\eta \tilde f(t) e^{i\delta_z t}\a^\dagger\cdot\mathopen{}\left(
+    \begin{alignedat}2
+     &\cos&\bigl((\delta_{\text{avg}}+\delta_{\text{spl}})t\bigr)&\sy^{(1)}\\
+    +&\sin&\bigl((\delta_{\text{avg}}+\delta_{\text{spl}})t\bigr)&\sx^{(1)}\\
+    +&\cos&\bigl((\delta_{\text{avg}}-\delta_{\text{spl}})t\bigr)&\sy^{(2)}\\
+    +&\sin&\bigl((\delta_{\text{avg}}-\delta_{\text{spl}})t\bigr)&\sx^{(2)}\\
+    \end{alignedat}\mathclose{}\right) + \text{H.c.}.
+\end{equation}
+In the absence of all errors, this degrades to an equivalent form to \cref{eq:iontrap-ms-hamiltonian} with generalised driving.
+
+Each error is largely caused by a separate miscalibration or experimental imperfection.
+Qubit-splitting errors can arise when the chosen encoding is magnetic-field sensitive, and there is a field gradient along the axis of the trap.
+A miscalibration of the average frequency of the qubits can arise from a drift in the laser caused by inadequate locking, or from a global magnetic field drift across all qubits.
+The motional frequency can often be affected by fluctuations on trap endcap electrode voltages, but it can also be difficult to calibrate this precisely, due to the \textsc{ac} Stark effect from the nearby stronger carrier transition when probing sidebands.
+
+The errors have different effects on the gate operation.
+An error in the motional frequency affects the red and blue sidebands equally but in opposite directions, meaning that the two-photon red--blue process of the gate is on-resonant overall for all states.
+This does, however, mean that the desired detuning from the sidebands, the $\epsilon$ in \cref{eq:iontrap-ms-u}, is not what is expected, and consequently both the applied Rabi frequency and the gate time will be incorrect, leading to residual qubit--motion entanglement at the completion of the pulses, and an incorrect amount of spin-dependent phase advancement.
+Both of these will strongly affect the quantum information stored in the qubits; in quantum computing applications, the coherence time of the motion is significantly shorter than the coherence time of the qubits.
+
+The two qubit frequencies play a separate role.
+Qualitatively, from \cref{fig:qubiterror-levels}, it is clear that a nonzero error in the qubit average will cause the two-photon process from an initial state of $\ket{gg}$ to be off-resonant; the energy separation between $\ket{gg}$ and $\ket{ee}$ is different the sum of the two photon energies by a factor of $2\delta_{\text{avg}}$.
+From this same starting state, the splitting frequency will cause an additional decoherence of the qubits by making them distinguishable during the operation, removing some of the path interference that cancels out the motional dependence in the ideal gate, but will not alone cause the complete process to be off-resonant.
+
+It is important to note, however, that the $\ket{gg}\leftrightarrow\ket{ee}$ process is only part of the story.
+For complete gate operation, one must also consider the coupling of $\ket{ge}\leftrightarrow\ket{eg}$.
+In this, the driven processes do not use a photon from each sideband, but two photons from the same sideband, and thus of the same frequency.
+This means that the splitting error now causes off-resonant effects, while the average error shifts the virtual levels targeted by the red--red and blue--blue processes by different amounts.
+Formally, for a physical gate $\U$ that is attempting to implement some target dynamics $\U_{\text{tg}}$, we are concerned with the \emph{average gate fidelity}
+\begin{equation}\label{eq:qubiterror-average-gate-fidelity}\begin{aligned}
+F = \frac1J\sum_j \Tr\Bigl( \U\proj[\big] jj\mkern2mu\U^\dagger\mkern1mu\U_{\text{tg}}\proj[\big] jj \mkern2mu\U_{\text{tg}}^\dagger\Bigr)
+  = \frac1J\sum_j\,\abs[\Big]{\matel[\big]{j}{\mkern2mu\U_{\text{tg}}^\dagger\mkern1mu\U}{j}}^2,
+\end{aligned}\end{equation}
+where the $J$ different $\{\ket j\}$ form a complete basis.
+In practice, we would always precalculate the $\U_{\text{tg}}\ket j$ terms only once, to avoid an extra matrix--vector product in an inner loop.
+
+It is clear from \cref{eq:qubiterror-ms-hamiltonian} that no amount of shaping $f_b$ will actually remove terms from the Hamiltonian.
+Instead, we seek a pulse design that reduces errors in the \emph{effective} Hamiltonian that is applied at the gate time.
+Unfortunately, with Pauli operators with time-dependent amplitudes now featured, the Magnus-expansion approach used to analytically calculate the dynamics in \cref{sec:iontrap-ms-gate} no longer terminates.
+The aperiodicity of the system also prevents the frequently used Floquet approach from being valid, and we need to turn to numerics to reasonably simulate the dynamics.
+
+We shall consider a multi-tone parametrisation, which is conceptually similar to several M\o lmer--S\o rensen gates being applied simultaneously, with each detuned by an integer multiple of the base case.
+For a driving field with $n$ tones, we write the blue-sideband driving profile as
+\begin{equation}\label{eq:qubiterror-drive-parametrisation}
+\tilde f(t) = \frac{\epsilon_n}{4}\sum_{k=1}^n c_{n,k}e^{-ik\epsilon_nt},
+\end{equation}
+for nondimensional complex numbers $\{c_{n,k}\}$, and a known base detuning $\epsilon_n$.
+The scaling factor of $2\epsilon_n$ is chosen such that $c_{1,1} = 1$ reproduces the original, single-tone M\o lmer--S\o rensen gate.
+The value of the detuning determines the gate time, and it is generally limited by the available driving-field power; a larger value requires more power in order to reduce the gate time as $\tau_n = 2\pi/\epsilon_n$.
+
+
+\section{Optimisation}
+
+One very natural figure of merit for a gate is its average fidelity, as defined in \cref{eq:qubiterror-average-gate-fidelity}.
+As a minor implementation detail, numerical optimisers are traditionally implemented as minimisers rather than maximisers---one person's $f$ is another's $-f$, making a distinction redundant---which motivates targeting the \emph{infidelity} $I = 1 - F$ instead.
+This is also a physically sound choice; we generally expect infidelity to never reach zero, but its order of magnitude plays a key role in whether quantum error correction is possible~\cite{Knill2005}.
+
+However, in the absence of errors, and assuming the Lamb--Dicke regime holds perfectly---more on that in the next chapter---the M\o lmer--S\o rensen gate has zero infidelity.
+This is no longer the case once errors are present, but we cannot optimise for a specific value of the error; if we knew it, we would mostly be able to recalibrate the system to remove it.
+In reality, we will have some modelled probability distribution of the errors $\omega(\vec\delta)$ and we care about reducing the expectation of the infidelity over all possible errors:
+\begin{equation}\label{eq:qubiterror-figure-of-merit}
+\expect{I}
+    = 1 - \frac1J\sum_j\int\!\mathrm d\vec\delta\,\omega(\vec\delta) \abs[\Big]{\matel[\big]{j}{\mkern2mu\U_{\text{tg}}^\dagger\mkern1mu\U(\vec\delta)}{j}}^2.
+\end{equation}
+In practice, we can precalculate the factors of $\U_{\text{tg}}^\dagger\ket j$ to save matrix multiplications.
+An arbitrary time-evolution solver is needed to calculate $\U(\vec\delta)\ket j$, but such mathematics are well studied~\cite{Press2007}.
+In this case, we defer to pre-written libraries~\cite{Johansson2013,Virtanen2020}.
+
+We must be careful that any comparison to the existing gate is fair.
+Many of the decoherence processes can be reduced by applying more laser power to perform the gate faster.
+This is easy for theorists to say, but impractical advice in reality; there is only so much power available.
+We need to impose a requirement that the peak power output of the driving field, $\max_t \abs{f_n(t)}^2$, does not exceed the base gate.
+
+This structure can be used to optimise the gate under any error model for the detunings.
+The work presented here focusses only on the two forms of qubit error, and leaves the motional error.
+The time-evolution operator for \cref{eq:qubiterror-ms-hamiltonian} can be calculated with a terminating Magnus series (see \cref{eq:qi-magnus}), and multi-tone scheme has already been shown to be highly useful in these situations, in which the remnant undesired terms can be cancelled order by order~\cite{Haddadfarshi2016,Webb2018,Shapira2018}.
+We will illustrate the method using normally distributed qubit-average and -splitting errors, as this is among the most likely model for errors with imperfect calibration.
+
+
+\subsection{Parametrisation}
+
+As in the optimisations in \cref{sec:coherence}, we seek some parametrisation that will allow us to use an unconstrained optimisation routine.
+The complex numbers $\{c_j\}$ are all very naturally parametrised by a real amplitude and phase.
+With arbitrary shapes, the detuning also needs to vary, but it cannot do so freely without allowing the power to grow unbounded.
+Instead, we fix $\epsilon$ to fix the peak-power output at the maximal allowed value, reducing the number of parameters by one.
+
+The scaling required for an arbitrary set of $\{c_j\}$ has no closed-form solution.
+It is possible in theory to scan through the duration of the gate and locate various maxima, but with the number of these extrema not known for any given parameter vector---there could be fewer than expected---it can be fiddly to ensure that the global maximum was found.
+A more elegant method is to recast the problem.
+All extrema coincide with the locations of the roots of the derivative of the power
+\begin{equation}
+\frac\partial{\partial t}\abs[\big]{f_n(t)}^2 = \frac{\epsilon_n^2}{16}\sum_{j,k} c_{n,k\vphantom j}^{}c_{n,j\vphantom k}^*e^{i(j-k)\epsilon_n t}.
+\end{equation}
+The exponentials can be treated as powers of a variable $z = e^{i\epsilon_n t}$, and so multiplying through by $z^{n-1}$ and relabelling indices leads to a polynomial
+\begin{equation}
+\Biggl[\sum_{k=0}^{n-2}\Biggl(\sum_{j=1}^{k+1}c_{j\vphantom k}^{}c_{j-k+n-1}^*\Biggr)(k-n+1)z^k\Biggr]
++ \Biggl[\sum_{k=n}^{2n-2}\Biggl(\,\sum_{j=k-n+2}^{n}c_{j\vphantom k}^{}c_{j-k+n-1}^*\Biggr)(k-n+1)z^k\Biggr]
+= 0.\quad % Extra space to force the tag to the new line.
+\end{equation}
+All $n$ complex roots of this $z_\ell$ can be found by well-established eigenvalue methods on the companion matrix of the polynomial~\cite{Press2007}.
+The roots are related to the temporal locations of the extrema $t_{\ell,m}$ by
+\begin{equation}
+\epsilon_n t_{\ell,m} = \arg(z_\ell) - i\ln\abs{z_\ell} + 2\pi m.
+\end{equation}
+The only roots are interest are in the first period and are real, so $m=0$ and $\abs{z_\ell} = 1$, and the peak power comes from testing the $2n-2$ or fewer resulting abscissae.
+With this scaling in place, we have attained a smooth surjection from $\mathbb R^\ell$ onto the search space, and can now use the same \textsc{bfgs} method as in \cref{sec:coherence-numeric-thresholds}.
+
+
+\subsection{Reduction of dimensionality}
+\label{sec:qubiterror-dimensionality}
+
+The state-space dimension for two qubits is four, and so the natural evaluation of the average gate fidelity requires numerically calculating four solutions to the Schr\"odinger equation.
+This can be reduced by more mathematically examining the effects of different detunings on the system.
+We first note that the multidimensional normal distribution centred on zero that we are using as an error model is completely symmetric under any sign flips; all choices of the signs in $\omega(\pm\delta_1,\pm\delta_2)$ give the same result.
+Further, the integral over all possible detunings in the figure of merit \cref{eq:qubiterror-figure-of-merit} ensures that both positive and negative detunings will be accounted for, and have equal weight.
+
+In the discussion surrounding \cref{fig:qubiterror-levels}, we argued qualitatively that the effects of an average-frequency shift on the state $\ket{gg}$ would be similar to those of a splitting of the qubit frequencies on a singly excited state such as $\ket{ge}$.
+These effects are in fact quantitatively equal.
+Further, there is a symmetry within each pair of states, in that the $\ket{gg}\leftrightarrow\ket{ee}$ transition will have very closely related Bell-state-creation fidelities for both initial states in the basis.
+
+Formally, we introduce an explicit parametrisation of the Hamiltonian \cref{eq:qubiterror-ms-hamiltonian} as $\H_\ms(\delta_{\text{avg}}, \delta_{\text{spl}})$.
+It was shown in \cref{eq:qi-frame-transformation} that a time-independent unitary frame transformation $\op{\mathcal V}$ transforms the Hamiltonian $\H\to\H'=\op{\mathcal V}\H\op{\mathcal V}^\dagger$, and similar for the time-evolution operator $\U$.
+Now, consider the average gate fidelity calculated over the natural basis set $\bigl\{\ket{gg},\ket{ge},\ket{eg},\ket{ee}\bigr\}$.
+The four possible combinations of applying or not applying the operators $\bigl\{\sy^{(1)},\sy^{(2)}\bigr\}$ transform the state $\ket{gg}$ into one of the other four basis states, and the evolution is then equivalent to some exchange of the errors.
+All four equivalences are shown in \cref{tab:qubiterror-error-frames}.
+
+\begin{table}%
+    \renewcommand*\arraystretch{1.2}%
+    \begin{tabular*}{\figwidth}{@{\extracolsep{\fill}} crl @{}}\toprule
+    $\op{\mathcal V}$ & $\op{\mathcal V}\ket{gg}$ & $\op{\mathcal V}\H_\ms(\delta_{\text{avg}}, \delta_{\text{spl}})\op{\mathcal V}^\dagger$\\\midrule 
+    $\I$ & $\ket{gg}$ & $\H_\ms(\delta_{\text{avg}}, \delta_{\text{spl}})$\\
+    $\sy^{(1)}$ & $-i\ket{eg}$ & $\H_\ms(-\delta_{\text{spl}}, -\delta_{\text{avg}})$\\
+    $\sy^{(2)}$ & $-i\ket{ge}$ & $\H_\ms(\delta_{\text{spl}}, \delta_{\text{avg}})$\\
+    $\sy^{(1)}\otimes\sy^{(2)}$ & $-\ket{ee}$ & $\H_\ms(-\delta_{\text{avg}}, -\delta_{\text{spl}})$\\
+    \bottomrule\end{tabular*}%
+    \caption[Error equivalence rules by frame transformations]{\label{tab:qubiterror-error-frames}%
+        Frame transformations showing the equivalence of various combinations of errors and starting states.
+        The second and third columns show pairs of basis states and error configurations that will exhibit identical dynamics to $\ket{gg}$ under a Hamiltonian with an average-frequency shift of $\delta_{\text{avg}}$ and a frequency split of $\delta_{\text{spl}}$.
+        Note that any single Pauli-$Y$ flip exchanges $\delta_{\text{avg}}$ and $\delta_{\text{spl}}$, and a flip of the first qubit introduces negatives on both.
+    }%
+\end{table}
+
+Under the assumption that the weight function is symmetrical around the zero point of each error individually, one only need evolve the states $\ket{gg}$ and $\ket{ge}$ to calculate the loss function \cref{eq:qubiterror-figure-of-merit} exactly.
+The gate fidelity for the other two basis states averaged over the symmetric error probability function will be equal to these two.
+This halves the number of time evolutions that must be carried out, which is the core inner routine in the calculation.
+In general the weighted gate fidelity will differ between $\ket{gg}$ and $\ket{ge}$ if the standard deviations of the error models for the two parameters are different.
+
+These similarities also show that a driving function optimised to reduce the effects of average-frequency shifts for all starting states will also be optimised for non-degenerate qubit levels.
+This does not extend as far as motional detunings, however.
+There is no similarity transformation between the qubit basis states that relates one of the other errors to a motional error.
+
+
+
+\subsection{Quadrature}
+
+The only remnant issue in the optimisation is the evaluation of the integral over all possible detunings in \cref{eq:qubiterror-figure-of-merit}.
+The time integrations of the Hamiltonian necessary to calculate $\U(\vec\delta)$ are expensive, and it is desirable to reduce the number of evaluations of the integrand.
+Numerically this becomes trickier when the integral is multidimensional, as in this case.
+
+Standard one-dimensional integration is often carried out by approximating the integrand in the integration region by a low-order polynomial.
+The calculation is performed as
+\begin{equation}\label{eq:qubiterror-newton-cotes}
+\int_a^b \!\mathrm dx\,f(x) \approx \sum_{j=1}^n w_j f(x_j) \quad\text{for }x_j = a + (j - 1)\frac{b - a}{n-1},
+\end{equation}
+for some weights $\{w_j\}$ that are independent of the integrand.
+They are found by defining a related function $f'(x) = \sum_j f(x_j)\ell_j(x)$ that is the Lagrange interpolation of $f$, where the $\{\ell_j\}$ are $\msquash{(n-1)}$\textsuperscript{th}-degree polynomials that satisfy $\ell_j(x_k) = \delta_{jk}$ for abscissae on the grid.
+These are given by $\ell_j(x) = \prod_{k\ne j}(x-x_k)/(x_j-x_k)$, with the numerator providing a multiplicative factor of zero for grid points other than $x_j$ and the scaling fixed to ensure $\ell_j(x_j) = 1$.
+The function $f'$ can then be integrated analytically, since the $f(x_j)$ are known; the weights in \cref{eq:qubiterror-newton-cotes} are $w_j = \int_a^b\!\mathrm dx\,\ell_j(x)$.
+
+This is a description of the \emph{Newton--Cotes} family of quadrature rules, of which the trapezium rule (linear) and Simpson's rule (quadratic) are the most well known.
+It is not usually worth moving to higher degrees of polynomial interpolation, which require more evaluations of the integrand but do not typically significantly improve error rates for non-polynomial functions.
+Instead, one may use the trapezium rule and subdivide the region recursively until some tolerance threshold is reached.
+This immediately poses two problems: the region here is infinite; and the number of function evaluations is not predictable, making it more difficult to allocate computational resources.
+
+Sticking, for now, to one dimension, it is possible to solve both of these problems, and achieve higher degree rules with the same number of points.
+Newton--Cotes rules require $n$ function evaluations on an evenly spaced grid to reach an interpolation with a polynomial of degree $n - 1$.
+However, there are more degrees of freedom available to construct higher-order rules.
+We previously assumed that the grid points $\{x_j\}$ would be evenly spaced, but this is not necessary.
+In fact, by a suitable choice of locations and quadrature weights, we can use only $n$ function evaluations to achieve a degree of $2n -1$ and account for a weight function within the integrand itself.
+This is \emph{Gaussian quadrature}.
+
+We begin by considering the set of smooth square-integrable real-valued functions as a Hilbert space under a family of inner products defined by
+\begin{equation}
+{\inner fg}_{\omega,\,\Omega} = \int_\Omega \mathrm dx\,\omega(x) f(x) g(x),
+\end{equation}
+for some region $\Omega$ and a weighting function $\omega(x)$ that is positive everywhere.
+One can construct a series of \emph{orthogonal polynomials} $\{P_k\}$, defined by $\inner{P_n}{P_m}\propto\delta_{nm}$, by starting from the basis of monomials $\bigl\{x^k \bigm\vert k\in \mathbb N^0\bigr\}$ and applying the Gram--Schmidt process.
+The most commonly used weight functions and regions produce well-known sets of orthogonal polynomials, tabulated in \cref{tab:qubiterror-gaussian-quadrature}.
+
+\begin{table}%
+    \begin{tabular*}{\figwidth}{@{\extracolsep{\fill}}lll@{}}\toprule
+        Weighting $\omega(x)$ & Region $\Omega$   & Polynomial set\\\midrule
+        $1$                   & $[-1, 1]$ & Legendre\\
+        $1/\sqrt{1+x^2}$      & $[-1, 1]$ & Chebyshev\\
+        ${(1-x)}^\alpha{(1+x)}^\beta$ & $[-1, 1]$ & Jacobi\\
+        $x^\alpha \exp(-x)$     & $[0, \infty)\vphantom]$ & Laguerre\\
+        $\exp\bigl(-x^2\bigr)$          & $(-\infty, \infty)$ & Hermite\\
+    \bottomrule\end{tabular*}%
+    \caption[Weight functions and associated orthogonal polynomials]{\label{tab:qubiterror-gaussian-quadrature}%
+        Commonly used weight functions and associated regions of integration used with Gaussian quadrature~\cite{Press2007}.
+        The regions and natural weight functions are related, but analytic variable transformations in the integrands can convert any finite region to any other; the \emph{form} of the weight is more important than the scaling.%
+    }%
+\end{table}
+
+Using polynomial division, an arbitrary function $f(x)$ in the vector space can be rewritten in terms of a quotient $q$ and remainder $r$ as
+\begin{equation}
+f(x) = q(x)P_m(x) + r(x),\quad\text{where $\operatorname{degree}(r) < m$}.
+\end{equation}
+Since the set of orthogonal polynomials spans the function space, we can decompose $q(x) = \sum_k c_kP_k(x)$ for some constants $\{c_k\}$.
+Let us now assume that $f$ is a polynomial function of degree strictly less than $2m$.
+In this case $q$ must be of a degree less than $m$, and the integral we are interested in is reduced by orthogonality:
+\begin{align}
+\int_\Omega\mathrm dx\,\omega(x) f(x) &= \biggl(\mkern2mu\sum_{k<m}c_k\int_\Omega\mathrm dx\,\omega(x)P_k(x)P_m(x)\biggr) + \int_\Omega\mathrm dx\,\omega(x)r(x),
+\intertext{%
+and all terms in the summation are zero.
+For quadrature we discretise to find
+}
+&= \sum_{j=1}^m w_j\mkern2mu q(x_j)P_m(x_j) + \sum_{j=1}^m w_j\mkern2mu r(x_j),
+\end{align}
+with equality due to the prior polynomial assumption of $f$.
+The first summation can be made zero as required by choosing the sample locations $\{x_j\}$ to be the roots of the polynomial $P_m$.
+This leaves only a term of degree less than $m$, and the same Laguerre-interpolation methods used to derive Newton--Cotes rules will find the necessary values of the $\{w_j\}$ to make the discretisation exact.
+Both the abscissae and weights are independent of the integrand---other than the fixed weight function in the inner product---and can be calculated ahead of time, or, more realistically, looked up in reference works~\cite{Press2007,Cools1993,Cools2003}.
+
+The weight functions we are concerned with here are all of the form $\exp\bigl(-x^2\bigr)$ for some coordinate scaling by the standard deviation in the error model.
+Using the Gaussian quadrature rules we have just described over the set of \emph{Hermite polynomials} allows us to calculate each separate integral over the infinite integral to high precision with few evaluations of the integrand.
+This is because the detunings are relatively small, and $\U(\vec\delta)$ varies sufficiently slowly---in a mathematical, not physical, sense---with respect to drifts in the detunings.
+We could now build up a multidimensional rule by iterating the integrations, which would require $m^d$ evaluations to interpolate at degree $m$ over $d$ dimensions.
+
+While this achieves better results with fewer evaluations than adaptive-width trapezium rules, in certain circumstances it can be possible to go even further.
+For such symmetric weight functions as $\exp(-\vec r\cdot\vec r)$, there is a body of literature that finds specific rules for multidimensional integrals~\cite{Stroud1971,Cools2003}.
+Orthogonal polynomials do not easily generalise to higher-dimensional spaces, and so such rules are rather less systematic, and more scattershot in the available degrees and required number of evaluations.
+Still, for the cases of two-dimensional integration with a Gaussian weight function, we will use rules from \citet{Cools2003} for degrees that have known more efficient solutions, and fall back on iterated Gauss--Hermite quadrature otherwise.
+
+
+\section{Results}
+
+In principle, one would set the standard deviations in the error model by measuring drift over the system, and producing an estimated error model.
+With no particular experimental setup in mind, we instead run the optimisations over several different values of these \emph{hyper-parameters} to investigate the families of gate produced.
+As expected from the analysis of \cref{sec:qubiterror-dimensionality}, optimising the gate over all states resulted in the same solutions, no matter whether the error model accounted for independent average offset and qubit splittings or only one of these.
+The symmetry under exchange of states ensured that all effects invariably contributed to the figure of merit.
+More families of solutions were found when integrating over only a single dimension, simply because of the reduced computational cost, and all of these solutions remained valid and stable when used as the starting point for optimisations over both errors simultaneously.
+
+It is worth highlighting that in multidimensional optimisations such as these, the convergence of the algorithm on a particular solution does not require it to be globally optimal, only locally.
+This can result in schemes that have the best response to errors with respect to small changes in the control parameters, but a much larger modification could produce significantly better results.
+The best general schemes for numbers of tones between two and six are shown in \cref{tab:qubiterror-schemes}.
+
+\begin{table*}%
+    \newcommand*\spacingstrut{\rule{0pt}{3.5ex}}%
+    \newcolumntype{x}{D..{1.3}}%
+    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}crrrrxxxxxx@{}}\toprule
+    Tones & $\tau_n/\tau_1$ & $\delta\mkern-1mu f_n$ & $\epsilon_n/\epsilon_1$ & &
+        \multicolumn1r{$c_{n,1}$} & \multicolumn1r{$c_{n,2}$} & \multicolumn1r{$c_{n,3}$} & \multicolumn1r{$c_{n,4}$} & \multicolumn1r{$c_{n,5}$} & \multicolumn1r{$c_{n,6}$} \\\midrule
+%
+    \multirow2*2 & \multirow2*{3.368} & \multirow2*{0.132} & \multirow2*{0.297} &
+        $\lvert c\rvert$ &  0.066 &  0.934 &&&& \\
+    &&&&$\phi/\pi$       & -0.032 &  0     &&&& \\
+%
+    \multirow2*3 & \multirow2*{3.185} & \multirow2*{0.033} & \multirow2*{0.314} & \spacingstrut
+        $\lvert c\rvert$ &  0.103 &  0.979 &  0.090 &&& \\
+    &&&&$\phi/\pi$       & -0.005 & -0.003 &  0     &&& \\
+%
+    \multirow2*4 & \multirow2*{4.836} & \multirow2*{0.555} & \multirow2*{0.207} & \spacingstrut
+        $\lvert c\rvert$ &  0.051 &  0.405 &  0.539 &  0.359 && \\
+    &&&&$\phi/\pi$       & -0.609 & -0.817 &  0.108 &  0     && \\
+%
+    \multirow2*5 & \multirow2*{4.542} & \multirow2*{0.622} & \multirow2*{0.220} & \spacingstrut
+        $\lvert c\rvert$ &  0.048 &  0.450 &  0.516 &  0.414 &  0.183 & \\
+    &&&&$\phi/\pi$       & -0.899 & -0.930 &  0.045 & -0.242 &  0     & \\
+%
+    \multirow2*6 & \multirow2*{6.529} & \multirow2*{0.482} & \multirow2*{0.153} & \spacingstrut
+        $\lvert c\rvert$ &  0.055 &  0.098 &  0.413 &  0.733 &  0.215 &  0.128 \\
+    &&&&$\phi/\pi$       & -0.616 & -0.785 & -0.954 &  0.007 & -0.043 &  0     \\
+    \bottomrule\end{tabular*}%
+    \caption[Optimised driving schemes for multi-tone M\o lmer--S\o rensen gates]{\label{tab:qubiterror-schemes}%
+        Multi-tone driving schemes of the M\o lmer--S\o rensen gate that are optimised to reduce the effects of normally distributed static qubit frequency errors.
+        The fields are as described by \cref{eq:qubiterror-drive-parametrisation}, where the complex amplitudes $c_{n,k} = \abs{c_{n,k}}e^{i\phi_{n,k}}$.
+        These amplitudes are scaled such that $c_{1,1} = 1$ retrieves the standard single-tone dynamics.
+        The single-tone gate has a constant total amplitude of $1$, whereas the multi-tone schemes vary by up to $\delta\mkern-1mu f_n$ over the course of the gate.
+        The phase of each most-detuned tone is arbitrarily chosen to be zero.
+    }%
+\end{table*}
+
+Unsurprisingly, one stable family of gates across a wide variety of error spreads is a minor perturbation to a single-tone gate.
+In these, one tone commands around \qty{90}{\percent} of the total power, making it roughly equivalent to the base gate, but potentially drawing out more loops in phase space before the completion of the gate, depending on which of the tones has the most power.
+For two- and three-tone gates, this style was the only stable solution that produced better fidelities than the base gate for a fixed peak power; for various fixed detunings, these schemes exhibited approximately a three-times reduction of infidelity.
+It is likely that at this level, there were simply not enough degrees of freedom for the optimiser to produce any more meaningful improvements.
+
+This story changed completely once the fourth tone was added, however.
+These schemes diverged from simple perturbations of the single-tone gate.
+\Cref{fig:qubiterror-multitone} shows the gate infidelity for the different schemes in \cref{tab:qubiterror-schemes} at fixed values of the detunings.
+The response with respect to the errors is qualitatively the same no matter what particular pair of the average and splitting errors are chosen.
+In this figure, we arbitrarily evaluated the gate infidelity for detunings in a ratio $\delta_{\text{avg}} = 2\delta{\text{spl}}$ for the sake of making a one-dimensional figure to better illustrate the scaling behaviours.
+The two- and three-tone gates did not achieve better than the $\delta^2$ scaling of the base gate.
+All schemes with four or more tones achieved a scaling of $\delta^4$ in the regions of greatest error.
+
+\begin{figure}%
+    \includegraphics{qubiterror-results.pdf}%
+    \caption[Fidelity properties of the robust multi-tone M\o lmer--S\o rensen gate]{\label{fig:qubiterror-multitone}%
+        Gate infidelities for the optimised driving schemes with the best overall performance compared to the standard M\o lmer--S\o rensen scheme.
+        For the sake of illustration, the gate infidelities are evaluated here for detunings in the ratio
+$\delta_{\text{avg}} = 2\delta_{\text{spl}}$, but the behaviour is qualitatively the same for any ratio.
+        An error which causes the single-tone gate to leave the error-correction threshold of \qty{99.9}{\percent} causes an infidelity of only \num{2.5e-5} when four or more tones are used.
+        The two- and three-tone gates are minor modifications of the standard driving, yet produce a three- to four-times improvement over the range of meaningful infidelities.
+        The inset shows the amplitude variation of each scheme over the gate duration.
+    }%
+\end{figure}
+
+This improvement in scaling brings order-of-magnitude improvements over the single-tone gate.
+At two of the points often cited as the thresholds for fault-tolerant quantum computing, \qty{99}{\percent} and \qty{99.9}{\percent}~\cite{Knill2005}, the perfectly implemented four-tone gate would instead have infidelities of \num{1e-3} and \num{2.5e-5} respectively, improvements of approximately 10- and 40-times.
+Alternatively, one could ask \emph{how much larger can the error be while maintaining fault tolerance?}
+The same two thresholds are breached for the four-tone gate with errors $1.8$ and $3.2$ times larger---a sizeable improvement.
+The story is largely the same for the five- and six-tone gates.
+While the constant factors of the infidelity can be reduced with the extra tones, there remains insufficient degrees of freedom to achieve greater scaling.
+
+We must also address the elephant in the room, that is the failure of the infidelities to go to zero at zero error, and indeed how the standard gate beats the ``optimised'' gates for certain lower errors.
+Both of these are explained by the numerical target.
+There is no requirement built-in to the figure of merit that the gate is perfect under ideal conditions, only that the expectation of the infidelity over the distribution of errors is minimal.
+With the standard deviation hyper-parameters set sufficiently large as to involve errors that prevent fault tolerance, the contribution of the smallest detunings is minor.
+The expectation is dominated by other regions of possible errors.
+
+The flattening out of the infidelities of the optimised schemes may well not be a fundamental issue.
+Beyond a certain limit, the numerical uncertainty from the quadrature or the time evolution may make it impossible for the optimiser to make further progress.
+If so, it is likely that the differences in the parameters between the schemes as presented in \cref{tab:qubiterror-schemes} and hypothetical schemes that maintain the $\delta^4$ scaling all the way to zero error would be sufficiently small as to be indistinguishable in experimental realisations.
+
+A notable feature of \cref{fig:qubiterror-multitone} is that only even-numbered tones appear to significantly affect the response of the gate.
+The infidelity of the three-tone gate looks almost identical to that of the two-tone gate, and similar between the four- and five-tone gates.
+The inset in the figure shows how the amplitude varies across the gate time, but this does not explain the similarities seen in the infidelity responses.
+In particular, the four- and five-tone gates do not seem to have too much in common in this respect.
+
+A better tool to compare the effects of different schemes is phase-space analysis.
+The two terms of the Magnus expansion of the ideal M\o lmer--S\o rensen Hamiltonian as originally given in \cref{eq:iontrap-ms-magnus} are
+\begin{equation}\label{eq:qubiterror-ms-magnus}\begin{aligned}
+\op M_1(t) &= -i \frac{\eta\Omega}2 \Sy\int_0^t\mathrm dt_1\,\bigl(e^{-i\epsilon t_1}\a^\dagger + e^{i\epsilon t_1}\a\bigr),\ \ \text{and}\\
+\op M_2(t) &= i\frac{{(\eta\Omega)}^2}4 \Sy^2\int_0^t\mathrm dt_1\int_0^{t_1}\mathrm dt_2\,\sin\bigl(\epsilon(t_2-t_1)\bigr).
+\end{aligned}\end{equation}
+Considering the two non-zero eigenstates of the $\Sy$ operator with eigenvalues $\pm1$, the first term produces an effective Hamiltonian $\H_{\text{eff}}(t) = \displace[\Big]{\pm\frac{i\eta\Omega}{2\epsilon} \bigl(e^{-i\epsilon t} - 1\bigr)}$, while the second is the two-qubit entangling interaction.
+
+This displacement term permits a geometrical interpretation of the effects of the gate.
+The two eigenstates gain a phase relative to each via their motional displacement, shown by the area enclosed by the displacement: it is directly proportional to the angle of the applied $\Sy^2$ rotation.
+This area has to correspond to an angle $(4n + 1)\pi/4$ for some integer $n$ to have the intended entangling effect.
+The displacement must return to zero at the completion of the gate to avoid unwanted entanglement between the qubits and the motion.
+The variation of the displacement of the motion over the course of the gate offers the easiest insight into the similarities and differences of driving schemes, as it encodes information on both the status of the motional mode, and the angle of the desired $\Sy^2$ rotation simultaneously.
+
+Phase-space expectation values for the positive eigenstate of $\Sy$ are plotted in \cref{fig:qubiterror-phase} for the base M\o lmer--S\o rensen scheme, and each of the other five gates presented in \cref{tab:qubiterror-schemes}.
+The two non-dimensionalised operators $\op x \propto \a^\dagger + \a$ and $\op p \propto \a^\dagger - \a$ correspond to the real and imaginary components of the displacement respectively, which draws out a circle when driving at constant power.
+This particular shape has long been known to be unnecessary, however, provided it encloses the correct area~\cite{Milburn2000,Sorensen2000}.
+
+\begin{figure}%
+    \includegraphics{qubiterror-phasespace.pdf}%
+    \caption[Phase-space paths during the robust multi-tone M\o lmer--S\o rensen gate]{\label{fig:qubiterror-phase}%
+        Motional phase-space trajectories of the different multi-tone gates also plotted in \cref{fig:qubiterror-multitone}, with the same peak power usage and different gate times.
+        Colour variation shows relative time through the gate, starting from dark purple.
+        Only even numbers of tones cause structural changes to the paths; this matches the fidelity responses seen in \cref{fig:qubiterror-multitone}.%
+    }%
+\end{figure}
+
+The similarities between the infidelity responses shown in \cref{fig:qubiterror-multitone} of odd--even pairs of driving fields are explained by \cref{fig:qubiterror-phase}.
+The phase-space trajectory ultimately determines the effects of detunings on the fidelity of the resulting gate.
+While the amplitude variations of each pair do not seem entirely linked, the addition of the extra tone does not appear to offer enough freedom to structurally change the path.
+Without analytic access to the propagators, it is difficult to explain exactly why this should be the case.
+One thought might be that there is some particular symmetry of the problem that discourages odd tones, but if this were the case, we should generally expect that odd-numbered tones---except for the base-gate case---should have negligible amplitudes in order to allocate the power elsewhere.
+The tabulated values in \cref{tab:qubiterror-schemes} do not show any such pattern, nor really any other relation.
+
+Throughout this chapter we have only considered detunings of the qubit frequencies.
+Notably, we did not attempt to minimise errors against both these frequencies and the motional frequency simultaneously with the same parametrisation.
+Motional frequencies alone have been considered with this same parametrisation~\cite{Haddadfarshi2016,Webb2018,Shapira2018}, returning a distinct cardioid shape of the phase-space path.
+
+The methods used in this chapter reproduce these prior results when handling only a motional uncertainty, but it is more interesting to attempt to handle all three errors at once.
+Unfortunately, we found no suitable schemes with this parametrisation alone.
+This can be understood through the shapes of the phase-space paths.
+It can be shown analytically~\cite{Haddadfarshi2016} that keeping the average motional displacement at the zero point, and minimising its maximum distance from the origin produces gates that are most resilient against mis-sets in the motional frequency.
+Physically, this seems natural: the greater the intended phase-space displacement, the greater the error rate caused by slight mis-sets in the parameters of the motion.
+Similarly, keeping the average displacement centred at zero keeps any residual qubit--motion entanglement small in magnitude, since it is never large at any point.
+With this in mind, it becomes clear why the same parametrisation cannot handle qubit and motional noise simultaneously; the centres of the displacements in \cref{fig:qubiterror-phase} is decidedly non-zero, and the maximum displacement generally grows beyond the base-gate case as more tones are added.
+
+Still, it is worth highlighting that this parametrisation offers significant improvements in qubit errors when motional errors can be tightly controlled.
+This may not often be the case, but in a system plagued mostly by stray magnetic fields, for example, one can use the smooth control present in this chapter to achieve ten- to forty-times improvements at critical points of frequency drift.
+Above three tones, the Fourier-series parametrisation showed quadratic improvements in the \emph{scaling} of the infidelity with respect to error, suggesting that some fundamental term can be entirely nulled with this method.
+
+
+\section{Outlook}
+
+The shaped pulses described in \cref{tab:qubiterror-schemes} showed significant improvements in fidelities for unknown qubit-frequency errors, though their inability to simultaneously handle errors in the motional frequency hampers their applicability in the real world.
+Further, control schemes based on precise, continuous amplitude shaping can suffer from increased calibration requirements in some experimental set-ups.
+Some methods of control-field synthesis exhibit non-linear responses to amplitude modulation, which can make implementation of these sequences difficult\cite{Webb2018}.
+This is not to say that the M\o lmer--S\o rensen gate has no future---it is still commonly used by the largest ion-trap-based quantum-computing companies IonQ~\cite{Blumel2021} and Honeywell~\cite{Pino2021}---only that this particular parametrisation of the control field may not be a silver bullet for error mitigation on its own.
+
+There have been other methods of gate shaping that have shown promise.
+One can maintain a constant amplitude throughout the gate, and shape the phase-space trajectories by introducing discrete jumps in the applied phases of the fields~\cite{Milne2020}.
+Alternatively, one can use single-qubit spin-echo techniques to mitigate some of the decoherence effects~\cite{Manovitz2017}.
+The qubit error term $\sz$ does not commute with the gate Hamiltonian, preventing the spin-echo method from achieving perfect suppression of these errors, but it can still improve fidelities.
+
+The Fourier-series amplitude-shaping method presented in this chapter appears to be more successful at reducing motional decoherence than qubit miscalibrations~\cite{Webb2018,Shapira2018}, and so mixing different parametrisation schemes may well be the best path forwards, with qubit-error considerations best solved by other means.
+Very recent work has combined multi-tone methods with spin-echo techniques, achieving good isolation against both motional- and qubit-frequency errors~\cite{Manovitz2022}.
+With these other methods seemingly yielding better results and no immediate experimental collaborations, we did not take the gate parametrisation of this chapter further.
+Instead, we now turn to look at a previously more fundamental limitation of trapped-ion gates: the linearity approximation in their Hamiltonian.

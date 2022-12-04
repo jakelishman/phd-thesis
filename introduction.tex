@@ -1,0 +1,64 @@
+\chapter{Introduction}
+
+The last decade has seen the beginnings of large-scale commercialisation of quantum computing, although practical advantages over classical computers still hover out of reach.
+The field arose forty years ago out of discussions about quantum simulations of nature~\cite{Feynman1982}, and possible quantum descriptions of Turing machines~\cite{Benioff1980,Benioff1982}.
+Within a decade, this developed into prospective models of a \emph{universal quantum computer}~\cite{Deutsch1985} and the first problem for which quantum systems offered an improvement in computational complexity over the best classical solution~\cite{Deutsch1989}.
+Non-academic interest in quantum information processing intensified after the publication of Shor's algorithm in 1994~\cite{Shor1994}, which demonstrated that the integer-factorisation problem, a bedrock of modern asymmetric cryptography, could be solved in a time polynomial in the number of bits rather than the sub-exponential asymptotic scaling of the most efficient known classical approach.
+
+For time being, our bank transactions and text messages remain safe.
+Since the turn of the millennium, several groups have successfully determined that $15 = 3\times5$ using various quantum systems~\cite{Vandersypen2001,Lanyon2007,Lu2007}, and in the last year, one group found that $21 = 3\times7$ on a commercial superconducting-qubit \textsc{ibm} machine~\cite{Skosana2021}.
+Of course, this is a somewhat facetious point; the immediate goals are to show that the methods are viable in the current \emph{noisy intermediate-scale} regimes of quantum devices.
+Still, though, five-bit integers are a far cry from the \num{4096}-bit products that have become the standard for \textsc{rsa} public-key systems.
+Current implementations are simply unable to fabricate or control millions of qubits at the operational tolerances required for these applications.
+Much of this is due to errors in the logical operations.
+While modern \textsc{cpu}s are---cosmic rays aside---essentially error-free in actual usage, this is not true of their quantum counterparts.
+
+The achievable interaction fidelities have steadily improved since the first two-qubit logic gate in trapped ions~\cite{Monroe1995}.
+The current state of the art remains in this same setting, with two-qubit gates now recorded at close to \qty{99.99}{\percent} fidelity~\cite{Ballance2016,Gaebler2016}.
+This is not the only medium for quantum computing, however.
+Early quantum algorithms were demonstrated in nuclear magnetic resonance systems~\cite{Chuang1998,Jones1998}, and in the intervening years, logic gates have been demonstrated in superconducting qubits~\cite{Wendin2017}, linear photonic systems~\cite{Kok2007}, neutral atoms~\cite{Bluvstein2022}, and other systems.
+
+The requirements for a scalable quantum information processor are generally agreed upon~\cite{DiVincenzo2000}.
+The five operations are: a set of well defined, addressable qubits; a reliable method to prepare known quantum states; decoherence times much longer than gate operations; access to a universal set of quantum logic gates; and a method of reading out the state of a qubit in some basis.
+While modern gate fidelities are high, decoherence processes pose limitations on how much further they can realistically be pushed on a large scale.
+With known quantum algorithms requiring many thousands or millions of gates, even the current state-of-the-art infidelities of around one part in ten thousand are insufficient.
+Instead, theoretical work into quantum error correction has shown that \emph{fault-tolerant} quantum computation can still be achieved with fidelities on the order of \qtyrange{99}{99.9}{\percent}~\cite{DiVincenzo1996,Roffe2019}.
+This is effectively reducing requirements on fidelities by increasing the number of qubits needed, elevating further the importance of scalability.
+The new infidelity goals are within reach for small numbers of qubits, but there are massive hurdles to overcome in experimental control and qubit isolation as register sizes increase.
+
+Of the candidates, trapped-ion and superconducting qubits currently seem the most likely to successfully scale in the near term.
+Both of these have serious commercial backing: trapped ions by Honeywell~\cite{Pino2021} and IonQ~\cite{Blumel2021}, and superconducting qubits by Google~\cite{Arute2019} and \textsc{ibm}~\cite{Zhang2020}.
+Trapped ions have the better fidelities and state lifetimes relative to their gate speeds, but the absolute gate speeds of superconducting qubits are orders of magnitude faster and their fabrication can build on the back of existing silicon technology.
+Both remain highly susceptible to many decoherence processes from the environment.
+This work focusses entirely on trapped ions, aiming to move the technology closer to satisfying all of the quantum-computing requirements completely.
+
+
+\section{Outline}
+
+The second part of this work contains three main areas of novel research, all linked by the goal of enabling more robust coherence and entanglement generation in noisy trapped-ion systems, key ingredients of creating a large-scale quantum information processor.
+These are not presented in chronological order, but instead progress from dealing with single ions, then to two-ion entanglement in a weakly coupled regime, and finish on a method for implementing two-qubit gates in non-linear regimes of strongly coupled interactions with multiple hot motional modes.
+All three of these projects led to publications~\cite{Corfield2021,Sameti2021,Lishman2020}, with \cref{sec:coherence,sec:beyondld} both being collaborative efforts with other researchers.
+Contributions from my co-authors are clearly stated at the beginning of each chapter, and I was heavily involved with all of the work that I have described in the rest of this thesis.
+
+As with any PhD thesis in modern physics, this work stands on the shoulders of programmatic giants.
+The subsequent text will not delve into the minutiae of any code, but I would be remiss were I not to mention those without whom I could never have produced this thesis.
+All the results of \cref{sec:coherence,sec:qubiterror,sec:beyondld} used significant computational resources to achieve, provided by the Research Computing Service at Imperial College London~\cite{ImperialHPC}.
+The majority of the programming here was built on the NumPy~\cite{Harris2020} and SciPy~\cite{Virtanen2020} packages.
+The library QuTiP~\cite{Johansson2013} was used for integration of arbitrary time-dependent systems, a project of which I became a principal contributor and then maintainer over the course of my degree.
+
+\Cref{sec:coherence} describes a generalisation of Ramsey-like interference-pattern experiments to robustly certify the presence of multilevel coherence in the motional state of a single trapped ion.
+This can never return false positives, despite the motional mode being inaccessible to measurement.
+In conjunction with the experimental group at Imperial, we implemented this scheme in a real-world system, and unambiguously verified that we had created three-level coherence.
+
+My first research project is presented in \cref{sec:qubiterror}, where we perform numerical optimisations of a multitone extension to the M\o lmer--S\o rensen entangling gate, to make it resilient against fluctuations and miscalibrations of the individual qubit frequencies.
+Our simulations indicate potential order-of-magnitude improvements in the infidelity of the gate at the error-correction threshold, and the methods used can efficiently handle any calibrated error model.
+
+Finally, \cref{sec:beyondld} describes a systematic method for moving trapped-ion gates outside of the weakly coupled, linear regime they have hitherto been confined within.
+This involves driving higher-order motional transitions with very simple control fields that any current ion-trap group could easily implement with their existing hardware.
+We illustrate a perturbative expansion to determine the gate dynamics order-by-order of the coupling strength for a general non-linear interaction, and derive a series of functional constraints on the driving profiles that, when satisfied, allow the gate to be decoupled from the motion to ever higher orders.
+We show two explicit solutions to these, improving the infidelity scaling of the gate by several orders. 
+This reduces the previously fundamental limitations on gate fidelity by a factor of \num{2000} with the simplest extension, and allows gates to operate without expensive sideband cooling cycles.
+For an outlook, we sketch out potential procedures for cancelling non-linearities from spectating motional modes and the steps needed to incorporate existing dynamical-decoupling or robust-gate schemes into this new framework.
+
+The rest of the first part of this work is devoted to the other introductory material needed for the new research.
+This includes the basic definitions and mathematical techniques of quantum mechanics and information in \cref{sec:qi}, and then the relevant physics of trapped ions in \cref{sec:iontrap}.

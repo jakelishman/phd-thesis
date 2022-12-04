@@ -1,0 +1,38 @@
+\chapter{Conclusion}
+
+
+My PhD research has been an investigation into the creation and verification of robust coherence and entanglement in trapped ions.
+The techniques presented here have all been working towards a goal of greater, more resilient coherent control of the quantum behaviour of trapped ions, with a view to enhancing noisy intermediate-scale quantum information processing in this medium.
+Going further, I hope that the work here is one more (small) stepping stone along the path to large-scale quantum computation, and the realisation of new models of computing.
+
+My work in \cref{sec:coherence} demonstrated that a general certifier for multilevel coherence could be made robust against false positives, even when the basis of coherence was not directly accessible to measurement.
+This went beyond previous work on the subject, allowing even untrusted coherent manipulations to be made by mapping a set of basis states onto a smaller, physically distinct Hilbert space, without risking the certifier incorrectly claiming the presence of high-order coherence.
+We then demonstrated this protocol by numerically finding mapping sequences that could generalise the Ramsey coherence experiment to higher orders, coherently mapping two orthogonal subspaces of motional basis states onto different qubit states for measurement.
+With the experimental team at Imperial, we implemented this in real hardware, successfully certifying 3-coherence in the motional state of a trapped ion, and offering strong evidence in favour of having created 4-coherence.
+This method required only a one-dimensional interference pattern, significantly reducing the number of measurements and experimental complexity necessary to certify coherence.
+
+Moving to entanglement, \cref{sec:qubiterror} presented a modification to the M\o lmer--S\o rensen scheme to make two-qubit entangling operations in trapped ions more resilient to fluctuations in the frequencies of the qubits.
+This used a multi-tone approach that has previously found success at decoupling the gate fidelities from errors in the motional frequency.
+We saw order-of-magnitude improvements in the infidelities of the two-qubit gate at errors that would usually cause a system to leave the fault-tolerance region.
+This opens up alternative avenues for the managing errors in real experimental situations, for example in larger-scale systems of magnetic-field-sensitive qubits where it becomes near-impossible to completely control all fluctuating fields over the trapping zones.
+Still, though, the improvements seen here were perhaps not as marked as when the same multi-tone parametrisation is applied to different classes of error~\cite{Webb2018,Shapira2018}, so it seems possible that a more fruitful strategy here would be to use this scheme to become robust against motional errors, and use some other decoupling method to protect against qubit miscalibrations, such as single-qubit dynamic decoupling~\cite{Manovitz2017}.
+
+The most exciting result for the future of ion traps is the method in \cref{sec:beyondld} to bring trapped-ion quantum computing outside the weakly coupled linear regime it has been confined to since its inception.
+We overcame a previously fundamental restriction on the infidelities of trapped-ion entangling gates, and demonstrated a systematic method for decoupling the gate operation from the motion to ever-higher orders.
+We found in exact simulations that our scheme brought about improvements in the asymptotic power-law scaling of the gate infidelity with respect to the ion--motion coupling.
+Using the trap parameters of the current state of the art for ion-trap entangling gates~\cite{Schaefer2018}, we showed that our scheme can in theory support a \num{2000}-fold improvement in the linear-regime error simply by driving a single additional pair of sidebands, and this increases by several more orders of magnitude if another pair of transitions are included.
+
+This new multi-sideband scheme opens many new areas of research.
+Without modification, it paves the way to trapped-ion quantum computing with hot motion; state-of-the-art fidelities can be reached, even if the ions are not cooled beyond the Doppler limit.
+Further, the method is a systematic way to derive functional constraints on the driving profiles of different sidebands, which should allow it to be used in conjunction with existing pulse-shaping methods of making robust gates, including the multi-tone methods discussed in \cref{sec:qubiterror}.
+We sketched the procedure for unifying a resilient gate scheme with this new, non-linear approach to entanglement generation.
+
+Additional theoretical work in this vein may also be in cancelling out the non-linearities that enter from spectator motional modes.
+We derived a set of constraints that decouple all relevant modes in which the ions participate equally, such that the resulting infidelity scaling is of order $\eta^8$.
+We sketched out possible paths forward to extend this to higher orders of the coupling strength, or to account for motional modes with unequal ion participation.
+We also look forwards to the results of an ongoing experimental collaboration with the ion-trapping group at Imperial, who hope to implement our schemes in the coming months.
+
+Ultimately, the true proof of all of these methods is in experimental realisations.
+We do not yet know for certain if a quantum advantage is possible in computational tasks, nor if trapped ions will be the best platform for larger-scale quantum computation.
+Still, all of the results presented here are improvements in current techniques for characterisation and generation of quantum behaviour in ion traps.
+There is a long way to go if we are to achieve general-purpose quantum computation, and the work here represents one more step in that journey.

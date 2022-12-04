@@ -1,0 +1,470 @@
+\chapter{Ion-Trap Quantum Computing}
+\label{sec:iontrap}
+
+The electronic states of single ions are natural choices for encoding quantum information.
+They are clearly at the quantum scale, yet an appropriate choice can provide very long lifetimes and fabrication of each qubit is trivially reproducible; any two ions of the same charge and isotope are guaranteed to have precisely equal energy-level structures.
+Ions can be isolated and confined with simple electromagnetic control fields, and the Coulomb interaction between them will keep them sufficiently spatially separated that they can be individually addressed.
+Depending on which electronic states are used for the qubits, this may be with lasers, or with microwaves if an external field is applied to modify the transition frequencies of different qubits.
+The motion of the ions is coupled via the same Coulomb interaction, which once cooled into the quantum regime can be used as a communication bus between all the ions in the same trap.
+
+Trapping is principally done with an electrostatic field to limit motion axially, and either an oscillating electric field or a static magnetic field to provide the perpendicular confinement.
+These two types of trap are called, respectively, linear rf or Paul traps~\cite{Paul1990} and Penning traps~\cite{Dehmelt1968}.
+In an idealised world with perfect experimental control, total isolation from all environmental factors, and unlimited laboratory space and budget, the two traps provide identical platforms for quantum information processing.
+Returning to reality, however, linear rf traps are the most common choice for quantum information processing due to simpler optical access, greater control over the radial confinement, and the non-necessity of large magnetic fields.
+The current highest-reported two-qubit average gate fidelities were achieved with ions in a linear rf trap, at slightly over \SI{99.9}{\percent}~\cite{Ballance2016,Gaebler2016}, although these results are now over five years old.
+This safely reaches the fidelities required for error-corrected quantum computing~\cite{Bermudez2017}, and more recent work out of the same groups has focussed more on performing gates at high speeds~\cite{Schaefer2018}, at lower powers with microwaves~\cite{Srinivas2021}, and with mixed ion species~\cite{Hughes2020}.
+
+
+\section{Qubit encodings}
+
+In principle, a qubit can be encoded in any two distinct energy levels of a trapped ion.
+In practice, both of the lifetimes must be long enough to carry out all the required operations while still permitting controlled transitions, and it must be possible to reliably prepare the qubit in a known state and read out its new state later~\cite{DiVincenzo2000}.
+Group-II ions are a common host for qubits as ionisation leaves a single valence electron, creating alkali-like states with simple energy-level structures.
+Access to an effective cooling transition is also an important part of choosing an ion, though not one integral to this thesis; for a deeper review, see \intextcite{Eschner2003}.
+
+The preparation requirement typically ensures that at least one element of the ground-state manifold is part of the qubit, but the choice of the other state has more flexibility.
+Broadly, the three main routes in order of frequency separation are to encode the two states separated by Zeeman or hyperfine splitting, or use an \emph{optical} qubit with the upper state in a different electronic orbital.
+These categories are broken down further by the addressing mode used to drive transitions between the qubit states: single-photon methods, or creating a lambda system with a third level and using a Raman configuration.
+\Cref{fig:iontrap-qubit-encodings} illustrates these main schemes.
+
+\begin{figure}%
+    \includegraphics{iontrap-encodings.pdf}%
+    \caption[Trapped-ion qubit encodings and addressing schemes]{\label{fig:iontrap-qubit-encodings}%
+        The principal choices of encodings for qubits in trapped ions and the two major addressing schemes.
+        The two qubit states are located in different Zeeman sublevels of the electronic ground state, different hyperfine levels of the ground-state manifold, or in an optical setup with one qubit in the ground state and the other in a metastable state in a different orbital.
+        Frequency separations for these are on the orders of \qty{10}{\mega\Hz}, \qty{1}{\giga\Hz} and \qty{100}{\tera\Hz} respectively.
+        Optical qubits are driven by high-powered lasers as simple two-level systems.
+        Hyperfine and Zeeman qubits are most commonly addressed in a Raman configuration forming a lambda system, though microwave sources can theoretically drive hyperfine qubits in a single-photon mode.
+    }%
+\end{figure}
+
+The easiest conceptually is to use the largest splitting as a simple two-level system addressed with a single laser, typically in the red and infrared range.
+These lasers were historically more available than those at the blue end of the spectrum used by other qubit schemes, and optical components remain easier to manufacture with lower relative transmission errors for longer wavelengths.
+Coherence times of these qubits are fundamentally limited by the lifetime of the excited state used.
+This all but requires the two levels to be separated by a dipole-forbidden transition, and the necessity of driving a state change with the available laser power in a reasonable amount of time ensures that quadrupole transitions are by far the most feasible candidates.
+Lifetimes on the order of one second are typical for these quadrupole transitions.
+However, to achieve coherent operations for this duration, the laser itself must have a linewidth on the order of \qty{1}{\Hz}; the dephasing rate is tied to the frequency coherence of the driving field, which in the single-photon case is directly derived from the laser.
+Such qubits are also generally susceptible to magnetic field noise, although much of this can be mitigated with modern shielding techniques~\cite{Ruster2016}.
+Readout is achieved in these systems by the electron-shelving technique, driving a transition from one of the two qubit states to a short-lived level with a detectable fluorescent decay~\cite{Sauter1986,Nagourney1986}.
+
+The hard physical limit on qubit lifetimes can be avoided by encoding the states in separate Zeeman~\cite{Home2006a,Poschinger2009} or, if the nucleus has a net spin, hyperfine levels of the same manifold~\cite{Monroe1995,Turchette1998}.
+With transition frequencies ranging from a few megahertz for Zeeman qubits to a few gigahertz for hyperfine qubits, the probability of spontaneous decay is effectively zero and lifetimes can exceed an hour~\cite{Wang2017,Wang2021}.
+Due to their nature, Zeeman qubits suffer from the same sensitivity to magnetic field fluctuations as optical qubits~\cite{Ruster2016}.
+With hyperfine structure it is possible to use \emph{clock} states whose transitions are first-order magnetic-field insensitive~\cite{Olmschenk2007,Harty2014}.
+In practice, groups generally operate with a small well controlled bias field in order to improve cooling and readout~\cite{Debnath2016,Pino2021}.
+These qubits can be driven directly with microwaves~\cite{Mintert2001,Harty2016}, but it is more common to use a laser-based Raman transition for reduced crosstalk and stronger coupling to the motion.
+An alternative approach to reduce crosstalk errors with microwaves is to apply a continuous dressing field to stabilise several field-sensitive states into a two-dimensional basis which is robust against magnetic fluctuations~\cite{Timoney2011,Webster2013}.
+Such schemes do generally struggle to engineer sufficient ion--motion interaction to perform two-qubit gates quickly, however~\cite{Weidt2016}.
+
+\begin{figure}%
+    \includegraphics{iontrap-ca40.pdf}%
+    \caption[Energy-level structure of \ce{^40Ca+}]{\label{fig:iontrap-ca40}%
+        Energy-level structure of \ce{^40Ca+} including the Zeeman sublevels, with the optical-qubit and readout transitions marked.
+        In the nuclear ground state, it has no nuclear spin and consequently no hyperfine structure.
+        The qubit is encoded in the electric-dipole-forbidden transition at \qty{729}{\nano\m}, addressed by a single laser.
+        The fluorescent transition at \qty{397}{\nano\m} is used to measure the qubit; the $\ket g$ state interacts radiatively, allowing detection by photon collection, while the $\ket e$ state is non-interacting.
+        It is also possible to use the two Zeeman sublevels of the $S_{1\mkern-1mu/\mkern-1mu2}$ state as a qubit, with two driving fields in the Raman configuration.
+    }%
+\end{figure}
+
+During my PhD, the Imperial experimental ion-trapping group used the states $\ket g = 4^2S_{\frac12,\,m_j=-\frac12}$ and $\ket e = 3^2D_{\frac52,\,m_j=-\frac12}$ in \ce{^{40}Ca+} as an optical qubit, with a transition wavelength of \qty{729}{\nano\m}.
+Its energy-level structure is illustrated in \cref{fig:iontrap-ca40}.
+Full details and justifications may be found in recent experimental PhD theses from the group~\cite{Hrmo2018,Jarlaud2018,Joshi2018}, although the original decision was made several PhD cycles ago.
+\ce{^{40}Ca+} is still an attractive ion for optical qubits, as its transition wavelengths are all between infrared and visible blue, a region well served by commercial optics and lasers~\cite{Schmidt-Kaler2003a}.
+This was the setting for the first non-adiabatic two-ion quantum logic gate~\cite{Schmidt-Kaler2003}, and the first direct qubit measurements at fidelities high enough to achieve fault-tolerant computing~\cite{Myerson2008}.
+It continued to be used as a host for investigations into process tomography~\cite{Riebe2006}, high-fidelity gates~\cite{Benhelm2008} and large-scale entanglement~\cite{Monz2011}.
+More recently, a full rack-integrated quantum computing system with two dozen qubits was demonstrated for these calcium ions~\cite{Pogorelov2021}.
+The quest for higher fidelities and longer lifetimes, however, has led some other calcium-using groups to move to \ce{^{43}Ca+} due to the hyperfine levels it affords~\cite{Harty2016,Schaefer2018}.
+
+For all simple two-level systems, the static contribution to the Hamiltonian is
+\begin{equation}\label{eq:iontrap-qubit-hamiltonian}
+\H_{\text{qubit}}/\hbar = \frac12\omega_{eg}\bigl(\proj ee - \proj gg\bigr) = \frac12\omega_{eg}\sz,
+\end{equation}
+where the zero point of energy is chosen to be half way between the lower and upper states, respectively labelled $\ket g$ and $\ket e$.
+The frequency separation is then $\omega_{eg}$, and it is convenient to write the Hamiltonian in terms of the Pauli $Z$ operator.
+
+
+\section{Trapped-ion dynamics}
+\label{sec:iontrap-dynamics}
+
+Quantum computing applications almost universally choose to trap ions in a one-dimensional chain along the trap axis, since this allows individual ions to be addressed without complicated stroboscopic techniques.
+This axis is conventionally labelled $z$.
+The trap geometry and electromagnetic fields produce a harmonic potential for each ion, characterised by a frequency $\omega_z$ that depend on the masses of all of the trapped ions.
+Taking each ion to be at a point $z_i$ with mass of $m_i$ and a single charge of $-e$, the system potential is
+\begin{equation}\label{eq:iontrap-potential}
+V(t) = \frac12 \sum_i m_i \omega_z^2 {z_i(t)}^2 + \frac{e^2}{4\pi\epsilon_0}\sum_{\langle i,\,j\rangle}\frac1{\abs{z_j(t) - z_i(t)}}.
+\end{equation}
+This thesis deals only with chains of equal ions, so for simplicity we consider equal masses $m_i = m$.
+It is further convenient to define a length scale $\ell = \sqrt[3]{e^2/(4\pi\epsilon_0 m \omega_z^2)}$ in order to move to a dimensionless coordinate system defined by $\zeta_i = z_i / \ell$, with the labels ordered such that $\zeta_i < \zeta_{i+1}$.
+This length scale is generally on the order of micrometres: for \ce{^{40}Ca+} trapped at \qty{500}{\kilo\Hz}, it is approximately \qty{7}{\micro\m}.
+
+With sufficiently strong trapping potentials, the ions will have well-separated equilibrium positions $\zeta_{0,i}$ and undergo small-amplitude oscillations $\delta\zeta_i(t)$ around these points.
+The equilibrium positions are at the point of zero force, defined by the solutions to
+\begin{equation}\label{eq:trap-equilibrium-positions}
+\frac1{m\omega_z^2\ell^2}\cdot\frac{\partial V}{\partial \zeta_i}
+    = \zeta_i - \sum_{j<i}\frac1{{(\zeta_j-\zeta_i)}^2} + \sum_{j>i}\frac1{{(\zeta_j-\zeta_i)}^2}
+    = 0.
+\end{equation}
+This must be solved numerically beyond the three-ion case, which is simple with Newton--Raphson iteration.
+The Jacobian $J$ of the system of equations is
+\begin{equation}
+J_{ij} = \frac1{m\omega_z^2\ell^2}\cdot\frac{\partial^2V}{\partial\zeta_i\partial\zeta_j} = \begin{dcases*}
+    1 + \sum_{k\neq i}\frac2{{\abs{\zeta_k - \zeta_i}}^3} & for $j = i$\\[0.4em]
+    \frac{-2}{{\abs{\zeta_j - \zeta_i}}^3} & otherwise,
+\end{dcases*}
+\end{equation}
+and the dimensionality can be halved via symmetry; the positions will be symmetric around the trap centre $\zeta=0$, with an ion exactly at the centre if there are an odd number.
+The solutions for up to ten ions are illustrated in \cref{tab:trap-equilibrium-positions}.
+
+The equations of motion for the small displacements can then be derived from \cref{eq:iontrap-potential}.
+Consider the second-order Taylor expansion $\bar V$ around the equilibrium, with the reference chosen to make zero potential at zero displacement:
+\begin{equation}
+\bar V
+    \propto \sum_i \biggl(1 + \sum_{j\ne i}\frac2{{\abs{\zeta_{0,j} - \zeta_{0,i}}}^3}\biggr){(\delta\zeta_i)}^2
+        - \sum_{\substack{i,\,j\\j\ne i}} \frac2{{\abs{\zeta_{0,j} - \zeta_{0,i}}}^3}\delta\zeta_i\,\delta\zeta_j.
+\end{equation}
+The dimensionless matrix $(\bar V_{ij}) / (m\omega_z^2\ell^2)$ is real symmetric over independent displacements and positive semi-definite, so its eigenvalues $\kappa_i^2$ are non-negative and its eigenvectors $\{\vec b_i\}$ form an orthonormal basis.
+A mapping $\vec{\delta\mkern-2mu\zeta}(t) \to \sum_i q_i(t)\vec b_i$ then simplifies the classical Hamiltonian to 
+\begin{equation}\label{eq:iontrap-classical-motional-hamiltonian}
+H(t) = \frac1{2m}\sum_i {p_i(t)}^2 + \frac12m\omega_z^2\sum_i \kappa_i^2{q_i(t)}^2.
+\end{equation}
+The standard treatment of quantisation and introduction of creation $\a_j^\dagger \propto \op q_j + i\op p_j$ and annihilation $\a_j$ operators diagonalises the motional Hamiltonian to
+\begin{equation}\label{eq:iontrap-motional-hamiltonian}
+\H_{\text{mot}}/\hbar = \sum_i \kappa_i\omega_z\a_i^\dagger\a_i
+\end{equation}
+up to a constant offset, where the sum is over the normal modes of motion.
+These modes are independent up to the validity of the second-order Taylor expansion; the first neglected terms are on the order of \num{e-3} times weaker.
+
+\begin{table*}{%
+    \setlength\fontheight{\heightof{0}}%
+    \setlength\cellheight{3pt + 6pt + 0.5em + \fontheight}%
+    \setlength\cellbaseline{(\cellheight - \fontheight)/2}%
+    \newcommand*\equilibriumdrawing[1]{{%
+        \sisetup{round-mode=figures, round-precision=3, round-pad=false, drop-zero-decimal}%
+        \begin{tikzpicture}[every node/.style={inner sep=0}]
+            \foreach \loc in {#1} \filldraw (\loc *2.05cm, 0) circle (1.5pt) node [above=0.5em] {\num{\loc}};
+            \path (0, -1.5pt + -3pt) -- +(0, \cellheight);
+        \end{tikzpicture}%
+    }}%
+    \begin{center}\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}cc @{}}\toprule%
+    Ions & Equilibrium positions $/\ell$\\\midrule%
+    \raisebox{\cellbaseline}{2} & \equilibriumdrawing{-0.629961,  0.629961}\\%
+    \raisebox{\cellbaseline}{3} & \equilibriumdrawing{-1.077217,         0,  1.077217}\\%
+    \raisebox{\cellbaseline}{4} & \equilibriumdrawing{-1.436802, -0.454379,  0.454379,  1.436802}\\\midrule%
+    \raisebox{\cellbaseline}{5} & \equilibriumdrawing{-1.742903, -0.822101,         0,  0.822101,  1.742903}\\%
+    \raisebox{\cellbaseline}{6} & \equilibriumdrawing{-2.012275, -1.136125, -0.369921,  0.369921,  1.136125,  2.012275}\\%
+    \raisebox{\cellbaseline}{7} & \equilibriumdrawing{-2.254544, -1.412917, -0.686943,         0,  0.686943,  1.412917,  2.254544}\\\midrule%
+    \raisebox{\cellbaseline}{8} & \equilibriumdrawing{-2.475820, -1.662062, -0.967008, -0.318021,  0.318021,  0.967008,  1.662062,  2.475820}\\%
+    \raisebox{\cellbaseline}{9} & \equilibriumdrawing{-2.680258, -1.889699, -1.219474, -0.599576,         0,  0.599576,  1.219474,  1.889699,  2.680258}\\%
+    \raisebox{\cellbaseline}{10} & \equilibriumdrawing{-2.870825, -2.100031, -1.450381, -0.853779, -0.282104,  0.282104,  0.853779,  1.450381,  2.100031,  2.870825}\\%
+    \bottomrule\end{tabular*}\end{center}\vspace*{-\baselineskip}%
+    \caption[Equilibrium positions of ions in a linear chain]{\label{tab:trap-equilibrium-positions}%
+        Equilibrium positions of identical singly charged ions in linear chains within a trap.
+        Ions closer to the centre of the chain are closer to their neighbours as the Coulomb force compresses the chain.
+        The positions are given in terms of the length scale $\ell = \sqrt[3]{e^2/(4\pi\epsilon_0 m\omega_z^2)}$.
+        For \ce{^{40}Ca+} trapped at an axial frequency of \qty{500}{\kilo\Hz}, $\ell\approx\qty{7}{\micro\m}$.
+    }%
+}\end{table*}
+
+The ions participate differently in each mode, proportional to the overlap of the relevant individual displacement basis vector and the eigenvector $\vec b_i$.
+The relative frequencies $\kappa_i$ and the normal-mode participations are depicted in \cref{tab:trap-normal-modes}.
+No matter how many ions are in the trap, the two principal modes are the \emph{centre-of-mass} mode at a frequency of $\omega_z$ with the ions moving together in phase, and the \emph{breathing} mode at $\sqrt3\omega_z$ with the ions expanding and contracting around the centre by amounts proportional to their equilibrium displacement.
+Higher-energy modes need to be calculated numerically, and the unequal participation amongst ions typically makes them undesirable for interactions.  The later work in this thesis will almost universally deal with the centre-of-mass mode, although with only two ions in a trap, the analyses would apply in the same way on the breathing mode.  Importantly, direct measurement of the motional states is not possible.
+The positional spread of the wavefunction for the zero-point motional state is $q_{\text{\textsc{rms}}} = \sqrt{\hbar/(2m\kappa_m\omega_z)}$.
+For \ce{^{40}Ca+} at \qty{500}{\kilo\hertz} on the centre-of-mass mode, this is around \qty{16}{\nano\m}---significantly shorter than the wavelength of any interrogating laser.
+The only common measurement used in trapped ions is of the qubit states.
+
+\begin{table*}{%
+    \setlength\fontheight{\heightof{0}}%
+    \setlength\cellheight{3pt + 8pt + 0.5em + \fontheight}%
+    \setlength\cellbaseline{(\cellheight - \fontheight)/2}%
+    \sisetup{round-mode=figures, round-precision=3, round-pad=false, drop-zero-decimal}%
+    \newcommand*\modedrawing[3]{{%
+        \begin{tikzpicture}[every node/.style={inner sep=0}]
+            \foreach \loc/\vel in {#3} {
+                \filldraw (\loc *2.5cm, 0) circle (1.5pt) node [above=0.5em] {\num{\vel}};
+                \IfEq{\vel}{0}{}{\path [draw, -Latex] (\loc *2.5cm, 0) -- +(\vel *2cm, 0);}
+            }
+            \coordinate (worst) at ($ (#1 * 2.5cm, 0) + (#2 *2cm, 0)$);
+            \path ($ (0, -1.5pt + -4pt) + -1*(worst) $) -- +($2*(worst) + (0, \cellheight)$);
+        \end{tikzpicture}%
+    }}%
+    \begin{center}\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ccc @{}}\toprule%
+    Ions & Frequency $/\omega_z$ & Normal mode participation\\\midrule%
+    \multirow2*2 & \raisebox{\cellbaseline}{\num{1.000000}} & \modedrawing{1.436802}{0.674197}{-0.629961/0.707107, 0.629961/0.707107}\\%
+                 & \raisebox{\cellbaseline}{$\sqrt3$} & \modedrawing{1.436802}{0.674197}{-0.629961/-0.707107, 0.629961/0.707107}\\\midrule%
+    \multirow3*[0.5\cellbaseline-0.5\cellheight]3 & \raisebox{\cellbaseline}{\num{1.000000}} & \modedrawing{1.436802}{0.674197}{-1.077217/0.577350, 0.000000/0.577350, 1.077217/0.577350}\\%
+                                                  & \raisebox{\cellbaseline}{$\sqrt3$} & \modedrawing{1.436802}{0.674197}{-1.077217/-0.707107, 0.000000/0.000000, 1.077217/0.707107}\\%
+                                                  & \raisebox{\cellbaseline}{\num{2.408319}} & \modedrawing{1.436802}{0.674197}{-1.077217/0.408248, 0.000000/-0.816497, 1.077217/0.408248}\\\midrule%
+    \multirow4*[1.0\cellbaseline-1.0\cellheight]4 & \raisebox{\cellbaseline}{\num{1.000000}} & \modedrawing{1.436802}{0.674197}{-1.436802/0.500000, -0.454379/0.500000, 0.454379/0.500000, 1.436802/0.500000}\\%
+                                                  & \raisebox{\cellbaseline}{$\sqrt3$} & \modedrawing{1.436802}{0.674197}{-1.436802/-0.674197, -0.454379/-0.213210, 0.454379/0.213210, 1.436802/0.674197}\\%
+                                                  & \raisebox{\cellbaseline}{\num{2.410381}} & \modedrawing{1.436802}{0.674197}{-1.436802/0.500000, -0.454379/-0.500000, 0.454379/-0.500000, 1.436802/0.500000}\\%
+                                                  & \raisebox{\cellbaseline}{\num{3.050959}} & \modedrawing{1.436802}{0.674197}{-1.436802/0.213210, -0.454379/-0.674197, 0.454379/0.674197, 1.436802/-0.213210}\\%
+    \bottomrule\end{tabular*}\end{center}\vspace*{-\baselineskip}%
+    \caption[Joint normal modes of motion of ions in a chain]{\label{tab:trap-normal-modes}%
+        Joint normal motional modes of identical ions in linear chains within a trap.
+        The frequency of each normal mode is given in terms of the axial trapping frequency $\omega_z$.
+        The participation of each ion in the motion is scaled such that each mode is described by a vector with unit magnitude.
+        The average displacement of each ion is zero; the motion oscillates forwards and backwards.
+    }%
+}\end{table*}
+
+\section{Ion--laser interactions}
+\label{sec:iontrap-interaction}
+
+\subsection{General Hamiltonian}
+
+A complete description of ion--laser interactions is rather involved, and is left to better works~\cite{Woodgate1980,Bransden1983,Loudon2000}.
+The derivations presented here are illustrative approximations rather than an attempt to be entirely rigorous.
+For trapped-ion quantum computing, only the dynamics of the ion are important; any induced variation in an applied electromagnetic field is relevant only if it has a measurable effect on the ion.
+The lasers or microwave sources used invariably have sufficient intensity to provide a continuous source of photons, and qubit transitions are deliberately chosen to make spontaneous emission negligible, making a semiclassical treatment valid.
+
+In the presence of an electromagnetic field with vector magnetic potential $\vec A$ the effective momentum of an ion is modified as $\vec p\to\vec p - e\vec A$, changing the Hamiltonian term to
+\begin{equation}
+H = \frac1{2m}{(\vec p - e\vec A)}^2
+  = \frac1{2m}\bigl(\vec p^2 - e\vec p\cdot\vec A - e\vec A\cdot\vec p + e^2\vec A^2\bigr).
+\end{equation}
+The $\vec p^2$ term is the full dimension of the momentum already considered in \cref{eq:iontrap-classical-motional-hamiltonian}, while the $\vec A^2$ term requires at least two-photon processes and is negligible for the desired driving fields.
+In the Coulomb gauge where $\vec A$ is purely transverse, it commutes with the quantised momentum $\vec p\to\op{\vec p}=-i\hbar\vec\nabla$, as $\vec\nabla\cdot(\vec A\psi) = (\vec\nabla\cdot\vec A)\psi + \vec A\cdot\vec\nabla\psi$ and the first term is chosen to be zero.
+This leads to the new ion--field interaction Hamiltonian term being described by
+\begin{equation}
+\H_{\text{int}} = -\frac em\op{\vec p}\cdot\vec A.
+\end{equation}
+As an electromagnetic field at a frequency $\omega_\ell$, $\vec A$ has a familiar plane-wave solution
+\begin{equation}
+\vec A(\vec r,\,t) = \vec A_0 \exp\bigl[i(\vec k\cdot\vec r - \omega_\ell t)\bigr] + \hc
+\end{equation}
+for a wavevector $\vec k$ satisfying the dispersion relation $\omega_\ell = c\abs{\vec k}$.
+The constant vector $\vec A_0$ defines the polarisation axis and strength of the incident field.
+
+An electron's position can be decomposed as its ion's position $\vec r_j$ plus a small relative displacement $\vec{\delta r}_j$.
+The interaction Hamiltonian for a field acting on multiple ions can then be rewritten as
+\begin{equation}\label{eq:iontrap-field-interaction-hamiltonian}
+\H_{\text{int}} = -\frac em\sum_j 
+    \underbrace{e^{i(\vec k\cdot \vec r_j - \omega_\ell t)}\vphantom{\vec p}}_{\text{motion}}
+    \underbrace{\op{\vec p}\cdot \vec A_0 e^{i(\vec k\cdot \vec{\delta r}_j - \phi_j)}}_{\text{ion state}}
+{} + \hc,
+\end{equation}
+where the position-dependent relative field phase $\phi_j$ can be absorbed without loss of generality into the chosen basis states.
+The term labelled \emph{ion state} in this Hamiltonian is responsible for the electronic transitions.
+Laser light has a wavelength in the hundreds of nanometres, while the distance of the electron from the ion $\abs{\vec{\delta r}_j}$ is several orders of magnitude smaller, at around a few Bohr radii.
+With this exponent, only the first few terms of the Taylor expansion with respect to $\vec k\cdot \vec{\delta r}_j$ are relevant.
+The leading-order term represents electric dipole transitions, while the term linear in $\vec k\cdot \vec{\delta r}_j$ contains the magnetic dipole and electric quadrupole transitions, and so on.
+Rather than dealing with the field form explicitly, it is far more convenient to limit the analysis to the two states of interest per ion, $\ket g$ and $\ket e$, and use Pauli operators to describe the transition.
+Explicitly, one can define a real coupling strength $\Omega_j$ called the \emph{Rabi frequency} such that
+\begin{equation}
+-\frac em \op{\vec p}\cdot \vec A_0 e^{i(\vec k\cdot \vec{\delta r}_j - \phi_j)}
+\approx \frac{\hbar\Omega_j}{2} e^{-i\phi} \sx^{(j)}
+\end{equation}
+where the ion state definitions are chosen to use the Pauli $X$ operator with a phase difference of $\phi$ that is the same for all ions.
+When the states considered are separated by an electric-dipole-forbidden transition, there are also terms proportional to $\proj gg$ and $\proj ee$, which must be compensated experimentally~\cite{Haffner2003}.
+
+The link to the joint motion in \cref{eq:iontrap-field-interaction-hamiltonian} is made clearer by considering only the axial component by taking $\vec k\cdot \vec r_j \to k_z\op q_j$, at which point the axial positions $\op q_j$ can be expanded in terms of the raising and lowering operators of each of the motional modes.
+This leads to a term of the form
+\begin{equation}
+\exp\bigl[i(\vec k\cdot \vec r_j - \omega_\ell t)\bigr] \to \exp\bigl[i\bigl({\textstyle\sum_m} \eta_{j,m}(\a_m + \a^\dagger_m) - \omega_\ell t\bigr)\bigr],
+\end{equation}
+where the sum is over the motional modes, and
+\begin{equation}
+\eta_{j,m} = k_z s_{j,m} \sqrt{\frac\hbar{2m\omega_z}}
+\end{equation}
+is the \emph{Lamb--Dicke parameter}, which characterises the coupling of each ion-state transition with each motional-mode transition.
+Ion traps typically operate with its value around \sfrac{1}{10}.
+The dimensionless scaling factors $s_{j,m}$ are defined by how strongly ion $j$ couples to motional mode $m$.
+Using the relative mode frequencies $\kappa_m$ and the normal-mode participation unit vector components $b_{j,m}$ given in \cref{tab:trap-normal-modes}, the scaling factors for a chain of $N$ ions~\cite{James1998} are $s_{j,m} = b_{j,m}\sqrt{N/\kappa_m}$.
+As expected, the centre-of-mass mode is most strongly affected by the incident laser field due to having the smallest $\kappa = 1$.
+For simplicity, we will consider only this mode from now on, for which all ions have the same Lamb--Dicke parameter $\eta$.
+Combining the three Hamiltonian components of \cref{eq:iontrap-qubit-hamiltonian,eq:iontrap-motional-hamiltonian,eq:iontrap-field-interaction-hamiltonian}, we reach the lab-frame ion-trap Hamiltonian for two-level ions and their centre-of-mass motion:
+\begin{equation}\label{eq:iontrap-lab-hamiltonian}
+\H_{\text{lab}}/\hbar =
+    \underbrace{\frac12\sum_j \omega_{eg}\sz^{(j)} + \omega_z\a^\dagger\a}_{\H_{\text{sys}}/\hbar}
+    {}+
+    \underbrace{\sum_j\Omega\sx^{(j)}\cos\bigl[\eta(\a + \a^\dagger) - \omega_\ell t - \phi\bigr]}_{\H_{\text{laser}}/\hbar}.
+\end{equation}
+The basis of interest is the eigenstates of the system Hamiltonian.
+These are labelled $\ket{x,n}$, where $n$ is the number of phonons in the centre-of-mass mode, and $x\in{\{g,e\}}^N$ is a descriptor of the state of the $N$ ions.
+For example, $\ket{gg,0}$ is the joint ground state of two ions and the motion.
+
+In order to more clearly calculate the allowed transition processes, the electronic and motional energy terms can be removed from the Hamiltonian by moving to an interaction frame.
+Under a unitary transformation $\exp(i\H_{\text{sys}}t/\hbar)$, the new interaction Hamiltonian becomes
+\begin{equation}\label{eq:iontrap-interaction-transform-hamiltonian}\begin{aligned}
+\H_{\text{int}}/\hbar =
+    {}&\Omega\sum_j e^{i\omega_{eg}t\sz^{(j)}/2}\sx^{(j)}e^{-i\omega_{eg}t\sz^{(j)}/2}\\[-0.5em]
+        &\qquad\qquad\mathbin{\textcolor{fade}{\times}} e^{i\omega_zt\a^\dagger\a}\cos\big[\eta(\a + \a^\dagger) - \omega_\ell t - \phi\big]e^{-i\omega_zt\a^\dagger\a}
+\end{aligned}\end{equation}
+once all trivial commutations have been resolved.
+Recognising that $\sz^2 = 1$ and writing $\sx = \sp + \sm$, a series expansion gives $\exp(i\chi\sz) = \cos\chi + i\sz\sin\chi$, so
+\begin{equation}\begin{aligned}
+e^{i\chi\sz}\sx e^{-i\chi\sz}
+    &= \cos(2\chi)(\sp + \sm) + i\sin(2\chi)(\sp - \sm)\\
+    &= e^{2i\chi}\sp + e^{-2i\chi}\sm.
+\end{aligned}\end{equation}
+The motional term requires more complex machinery to evaluate.
+Using the Baker--Campbell--Hausdorff-derived \cref{eq:qi-bch-lemma} to expand $e^{\op A}\op B e^{-\op A}$ into commutators of the two operators, and as $\comm{\a^\dagger\a}{\a} = -\a$ and $\comm{\a^\dagger\a}{\a^\dagger} = \a^\dagger$, we have
+\begin{equation}
+e^{i\chi\a^\dagger\a}\bigl(\a + \a^\dagger\bigr)e^{-i\chi\a^\dagger\a} = e^{-i\chi}\a + e^{i\chi}\a^\dagger.
+\end{equation}
+We are free to insert the identity expression $e^{-i\chi\a^\dagger\a}e^{i\chi\a^\dagger\a}$ between all operators of a power series, so the cosine term in the lab-frame Hamiltonian of \cref{eq:iontrap-lab-hamiltonian} is moved to the interaction picture by the replacement $\a\to e^{-i\omega_zt}\a$.
+
+There are now three relevant frequencies: the qubit-state separation $\omega_{eg}$, the motional-state separation $\omega_z$, and the interaction field $\omega_\ell$.
+While there are many possible transitions, only those close to resonance can meaningfully contribute to the dynamics.
+To simplify the interaction-picture Hamiltonian \cref{eq:iontrap-interaction-transform-hamiltonian}, we make a rotating-wave approximation to neglect any terms with $\omega_{eg} + \omega_\ell$, and define a new selection frequency $\omega_s = \omega_\ell - \omega_{eg}$.
+This leads to a final Hamiltonian
+\begin{equation}\label{eq:iontrap-interaction-hamiltonian}
+\H_{\text{int}}/\hbar = \sum_j\frac\Omega2 e^{-i(\omega_st + \phi)}\sp^{(j)}\exp\Bigl[i\eta\bigl(e^{-i\omega_zt}\a + e^{i\omega_zt}\a^\dagger\bigr)\Bigr] + \hc,
+\end{equation}
+where the sum is over ions targeted by the interaction.
+This is the base Hamiltonian for trapped-ion quantum computing.
+The derivations here used a single interaction field, but essentially the same Hamiltonian is reached if the field is formed by two separate components in a Raman configuration.
+The relevant wavevector becomes the difference between the two fields, but the transitions remain in the same form.
+
+
+\subsection{Sideband transitions}
+\label{sec:iontrap-sidebands}
+
+The general interaction Hamiltonian of \cref{eq:iontrap-interaction-hamiltonian} still contains two frequencies and several possible transitions.
+For an initial qualitative view, the exponential can be expanded up to the term linear in the Lamb--Dicke parameter.
+This gives three terms in a rotating-wave approximation, shown here for a single ion:
+\begin{equation}\label{eq:iontrap-approximate-first-order-sidebands}
+\H/\hbar \approx \left\{\begin{alignedat}3
+    i\eta&\textstyle\frac\Omega2 \bigl(e^{-i(\delta t + \phi)}\sp\a - e^{i(\delta t + \phi)}\sm\a^\dagger\bigr) && \omega_s = -\omega_z + \delta, &&\text{\textcolor{redsb}{red};}\\
+    &\textstyle\frac\Omega2 \bigl(e^{-i(\delta t + \phi)}\sp + e^{i(\delta t + \phi)}\sm\bigr) &\qquad& \omega_s = \delta, &\ &\text{\textcolor{carrier}{carrier};}\\
+    i\eta&\textstyle\frac\Omega2 \bigl(e^{-i(\delta t + \phi)}\sp\a^\dagger - e^{i(\delta t + \phi)}\sm\a\bigr) && \omega_s = \omega_z + \delta, &&\text{\textcolor{bluesb}{blue}.}
+\end{alignedat}\right.
+\end{equation}
+The \emph{carrier} transition is driven if the interaction-field frequency is close to the qubit frequency, simply driving coherent oscillations between the two qubit states without affecting the motion.
+If the interaction field is instead tuned to be one motional frequency away from the qubit frequency, one of the two first-order sidebands is driven instead.
+These are called the \emph{red} and the \emph{blue}, with the red sideband having the lower frequency.
+In these, a phonon of motion is removed from or added to the system as the ion is excited, respectively.
+These low-order terms are illustrated in \cref{fig:iontrap-sidebands}.
+
+\begin{figure*}
+    \includegraphics{iontrap-sidebands.pdf}%
+    \caption[First-order sideband transitions in a single trapped ion]{\label{fig:iontrap-sidebands}%
+        Sideband transitions up to first order in a single trapped ion inside the Lamb--Dicke regime.
+        The carrier couples the ion state without affecting the motion, which is driven when the interaction-field frequency is close to the separation between the two states.
+        When the driving frequency is detuned by one motional quantum from the qubit frequency, the red or blue sideband can be driven, which respectively remove or add a phonon while exciting the ion.
+    }
+\end{figure*}
+
+Each of these transitions couples pairs of joint qubit--motion states in a simple Rabi model.
+For example, the carrier drives the transitions $\ket{g,n}\leftrightarrow\ket{e,n}$, and the blue sideband drives $\ket{g,n}\leftrightarrow\ket{e,\msquash{n+1}}$.
+Taking a single coupled pair of states and reducing the labels to $\ket g$ and $\ket e$, the Schr\"odinger equation can be solved exactly as a simple pair of coupled differential equations, giving a time-evolution operator
+\begin{equation}\label{eq:iontrap-sideband-evolution}\begin{aligned}
+\U(t) = {}
+    & e^{-i\delta t/2}\Bigl(\cos(\Omega' t/2) + i \frac\delta{\Omega'}\sin(\Omega' t/2)\Bigr)\proj ee\\
+    & {} + e^{i\delta t/2}\Bigl(\cos(\Omega' t/2) - i \frac\delta{\Omega'}\sin(\Omega' t/2)\Bigr)\proj gg\\
+    & {} - i\frac\Omega{\Omega'}\sin(\Omega' t/2)\Bigl(
+        e^{-i\delta t/2}e^{-i\phi'} \proj eg
+        + e^{i\delta t/2}e^{i\phi'} \proj ge
+    \Bigr).
+\end{aligned}\end{equation}
+Exactly on resonance, this describes perfect sinusoidal oscillations between the two coupled states with a \emph{Rabi frequency} of $\Omega$.
+If the laser is detuning from the transition by an amount $\delta$, the Rabi frequency is modified to $\Omega' = \sqrt{\delta^2 + \Omega^2}$, and the oscillation amplitude is reduced by a factor of $1 + \delta^2/\Omega^2$.
+
+Conventional terminology is to call the shortest pulse that completely exchanges the state populations a \emph{$\pi$ pulse}, although from a mathematical point of view, its duration is $t = \pi/\Omega'$ implying $\U$ is $4\pi$-periodic.
+After twice the length of a $\pi$ pulse, the measured populations are the same, but a global phase factor of $-1$ is introduced on the ion state.
+This is most relevant when the transition is applied to a single ion in a chain.
+
+Each pair of ground and excited states is coupled by exactly one transition, and the oscillation frequency $\Omega_{n,m}$ is dependent only on the two motional levels $n$ and $m$ and the Lamb--Dicke parameter.
+To determine these more accurately, we consider a more complete expansion of the exponential in the interaction Hamiltonian of \cref{eq:iontrap-interaction-hamiltonian}.
+Using the Baker--Campbell--Hausdorff formula with $\comm[\big]{\comm{\a}{\a^\dagger}}{\a} = 0$, the motional component can be written as
+\begin{equation}\label{eq:iontrap-motional-exponential}
+\exp\Bigl[i\eta\bigl(e^{-i\omega_zt}\a + e^{i\omega_zt}\a^\dagger\bigr)\Bigr]
+    = \exp(-\eta^2/2)\exp\bigl(i\eta e^{i\omega_zt}\a^\dagger\bigr)\exp\bigl(i\eta e^{-i\omega_zt}\a\bigr).
+\end{equation}
+The new coupling frequency is $\Omega_{n,m} = \Omega\abs[\big]{\matel m\circ n}$, where the matrix element is of \cref{eq:iontrap-motional-exponential}.
+In this form, it is clear that for any pair of starting $n$ and ending $m$ motional states, all transition processes contain only frequencies $(m - n)\omega_z$, corresponding to the phonon difference.
+Further, there are a finite number of contributing motion-dependent terms as only the first $n$ terms in the series of expansion of $\exp(\chi\a)\ket n$ have a nonzero coefficient.
+
+Explicitly, the frequencies are
+\begin{equation}\label{eq:iontrap-rabi-frequencies}
+\frac{\Omega_{n,m}}\Omega = e^{-\eta^2/2}\eta^{\abs{m-n}}\sqrt{\frac{\min(n,m)!}{\max(n,m)!}}\,L^{(\abs{m-n})}_{\min(n,m)}\bigl(\eta^2\bigr),
+\end{equation}
+when defined in terms of the generalised Laguerre polynomials
+\begin{equation}\label{eq:iontrap-laguerre-polynomials}
+L^{(a)}_n(x) = \sum_{j=0}^n{(-1)}^j\binom{n+a}{n-j}\frac{x^j}{j!}.
+\end{equation}
+The Rabi frequency describes a single physical coupling between two levels, and the symmetry of \cref{eq:iontrap-rabi-frequencies} mathematically illustrates that $\Omega_{n,m} = \Omega_{m,n}$.
+The first-order transition frequencies are
+\begin{equation}\begin{alignedat}2
+\text{\textcolor{carrier}{carrier}:}&&\frac{\Omega_{n,n}}\Omega &= 1 - \frac12(2n+1)\eta^2 + \order[\big]{\eta^4},\\%\frac18(2n^2 + 2n + 1)\eta^4 + \order[\big]{\eta^6},\\
+\text{\textcolor{redsb}{red} and \textcolor{bluesb}{blue}:}&\quad&\frac{\Omega_{n,n+1}}\Omega &= \eta\sqrt{n+1}\Bigl[1 - \frac12(n+1)\eta^2 + \order[\big]{\eta^4}\Bigr].%\frac1{24}(2n^2 + 4n + 3)\eta^4 + \order[\big]{\eta^6}\Bigr].
+\end{alignedat}\end{equation}
+The leading-order terms of the second-order sideband transition frequencies are $\eta^2\sqrt{(n+1)(n+2)}$.
+The suitability of the series-expansion approximation used to define \cref{eq:iontrap-approximate-first-order-sidebands} therefore depends on both $\eta$ and the number of phonons being small.
+Its region of validity is named the \emph{Lamb--Dicke regime}.
+There are many mathematical definitions of this in the literature, but the requirements are usually that second-order sideband transitions are forbidden, and the frequencies of the carrier and the first-order sidebands can be truncated to their leading-order terms.
+One simple expression of these is $(n+1)\eta^2 \ll 1$.
+Within this limit, the carrier couples all its pairs of states at the same frequency, but the first-order sidebands couple proportional to the square root of the larger number of phonons, so different pairs have generally incommensurate oscillations.
+
+
+\section{M\o lmer--S\o rensen gate}
+\label{sec:iontrap-ms-gate}
+
+Only the carrier transition affects every possible basis state of the ion trap.
+Notably, the first red sideband does not affect the state $\ket{g,0}$, while the first blue sideband does not affect $\ket{e,0}$.
+The joint motion can therefore be used as a communication bus, allowing two-qubit gates to be realised with only single-ion operations by entangling the internal states of the ions with the motion.
+This was the earliest major proposal for fast, scalable quantum computing~\cite{Cirac1995} and became the first implemented ion-trap quantum-logic gate, although the initial demonstration was between an ionic and a motional qubit~\cite{Monroe1995}.
+More advanced laser stabilisation was needed before two separate ions could be coherently addressed and entangled with this scheme~\cite{Schmidt-Kaler2003}.
+Further, for general computing use, the reliance on a coherent motional qubit is undesirable.
+Motional states decohere quickly due to voltage fluctuations and trap heating, while the requirement to begin in the ground state of motion imposes onerous cooling requirements.
+A better scheme would use the motion to couple the qubits without the interaction strength being conditioned on the motional state.
+
+One such option is the \emph{M\o lmer--S\o rensen gate}~\cite{Sorensen1999,Sorensen2000}.
+Assuming the Lamb--Dicke regime, one applies both the red and blue sidebands simultaneously to multiple ions, detuned by equal but opposite amounts $\epsilon$ at the same phase.
+The scheme is illustrated in \cref{fig:iontrap-ms-levels}.
+This produces a Hamiltonian
+\begin{equation}\label{eq:iontrap-ms-hamiltonian}
+\H_{\text\ms}/\hbar = \frac{\eta\Omega}2\bigl(ie^{-i\phi}\Sp - ie^{i\phi}\Sm\bigr)\bigl(e^{-i\epsilon t}\a^\dagger + e^{i\epsilon t}\a\bigr),
+\end{equation}
+where $\S_\circ = \sum_j \op\sigma^{(j)}_\circ$ is a sum of single-qubit Pauli operators.
+The phase $\phi$ chooses a qubit operator in the $\sx$--$\sy$ plane, and the M\o lmer--S\o rensen gate is accordingly occasionally referred to as a $\op\sigma_\phi\otimes\op\sigma_\phi$ gate to distinguish it from $\sz\otimes\sz$-interaction schemes~\cite{Roos2008}.
+We will arbitrarily choose $\phi$ to make the qubit terms $\Sy$.
+
+\begin{figure}
+    \includegraphics{iontrap-ms-levels.pdf}%
+    \caption[M\o lmer--S\o rensen gate energy-level scheme]{\label{fig:iontrap-ms-levels}%
+        The energy levels of the M\o lmer--S\o rensen scheme.
+        Two global fields are applied: one slightly detuned from the blue sideband, and the other detuned by an equal but opposite amount from the red sideband.
+        Inside the Lamb--Dicke regime there are oscillatory dynamics between $\ket{gg,n}\leftrightarrow\ket{ee,n}$ and $\ket{ge,n}\leftrightarrow\ket{eg,n}$ that are independent of the motional state $\ket n$.
+        If the interaction strength and detuning are chosen appropriately, there is a pulse duration that will produce two-qubit entanglement with no spurious coupling to the motion.
+    }
+\end{figure}
+
+The time evolution of this Hamiltonian can be found by the Magnus expansion, which terminates after two terms.
+With $\U_{\text\ms}(t) = \exp\bigl(\op M_1(t) + \op M_2(t)\bigr)$, the Magnus operators from \cref{eq:qi-magnus} are
+\begin{equation}\label{eq:iontrap-ms-magnus}\begin{aligned}
+\op M_1(t) &= -i \frac{\eta\Omega}2 \Sy\int_0^t\mathrm dt_1\,\bigl(e^{-i\epsilon t_1}\a^\dagger + e^{i\epsilon t_1}\a\bigr),\ \ \text{and}\\
+\op M_2(t) &= i\frac{{(\eta\Omega)}^2}4 \Sy^2\int_0^t\mathrm dt_1\int_0^{t_1}\mathrm dt_2\,\sin\bigl(\epsilon(t_2-t_1)\bigr).
+\end{aligned}\end{equation}
+The first of these describes a state-dependent phase-space displacement: the positive and negative eigenstates of $\Sy$ undergo opposite circular trajectories.
+The second term provides two-qubit interactions via the $\Sy^2 = 2(1 + \sy\otimes\sy)$ operator.
+If the interaction is applied for a time $t = 2\pi/\epsilon$, the phase-space displacement returns to zero and the whole evolution is
+\begin{equation}\label{eq:iontrap-ms-u}
+\U_{\text\ms}\Bigl(\frac{2\pi}\epsilon\Bigr) \equiv \cos\biggl(\pi\frac{\eta^2\Omega^2}{\epsilon^2}\biggr) - i\sin\biggl(\pi\frac{\eta^2\Omega^2}{\epsilon^2}\biggr)\sy\otimes\sy,
+\end{equation}
+up to a global phase.
+Geometrically, the angle inside the trigonometric functions is proportional to the area swept out by the phase-space trajectory.
+If the detuning is set to $\epsilon = 2\eta\Omega$, the M\o lmer--S\o rensen interaction creates Bell states from unentangled ions.
+With simple additional single-qubit rotations, this can be transformed into a quantum logic gate.
+Importantly, assuming the Lamb--Dicke regime holds, this interaction is not dependent on the motional state, and so has far less taxing requirements on cooling and isolation from external fields.
+This is not limited to two-qubit processes.
+Provided all ions partake equally in the motional mode addressed, the same technique maps the joint ion ground state to a \textsc{ghz}-type state\footnote{%
+    Greenberger--Horne--Zeilinger states are of the form $(\ket{00\dotso0} + \ket{11\dotso1})/\sqrt2$, and the term is usually only applied to three-or-more-qubit systems.
+    The M\o lmer--S\o rensen interaction creates states of the form $\bigl(\ket{00\dotso0} + e^{i\phi}\ket{11\dotso1}\bigr)/\sqrt2$, including the two-qubit case.
+}, independent of the motional occupation and the number of ions~\cite{Molmer1999,Solano1999}.
+Practically, the centre-of-mass mode is not always ideal due to its propensity to heating, but for four ions there is a \emph{stretch} mode with equal participation in alternating directions that can be used for larger-scale entanglement~\cite{Sackett2000}.
+
+Aside from requiring relatively weak ion--motion coupling to achieve the Lamb--Dicke regime, the other major requirement for good fidelity is that the field does not significantly drive the carrier transition off-resonantly.
+This requires that $\Omega\ll\omega_z$.
+The original formulation of the gate~\cite{Sorensen1999} drove the transition adiabatically, preventing population of the intermediate states.
+It relied on a phase difference between the left and right paths of \cref{fig:iontrap-ms-levels}, which, when treated as two-photon processes, have coupling frequencies proportional to $n$ and $n+1$ respectively.
+The phase difference cancelled out the motion-dependent $n$ component of these.
+This was only possible with a further constraint that $\eta\Omega\ll\epsilon$, and so the gate was exceedingly slow.
+The stronger-coupled form removes this restriction~\cite{Sorensen2000}, allowing the gate speed to be generally limited by available laser power and the validity of the Lamb--Dicke approximation.
+At the time of writing, the record fidelity for a two-qubit gate was achieved by this method~\cite{Gaebler2016}, tied with a $\sz\otimes\sz$-based gate also in trapped ions~\cite{Ballance2016}.
+
+\Cref{sec:qubiterror} will examine the dynamics of the M\o lmer--S\o rensen interaction when there are various static frequency offsets and miscalibrations, and present driving schemes to mitigate undesired effects.
+In \cref{sec:beyondld}, the gate will be taken \emph{outside} the Lamb--Dicke approximation by a general method that produces the same Bell-state creation, breaking previously fundamental limitations on motional populations and usable ion--motion coupling strengths.
+First, however, we return to single-ion dynamics, and consider the problem of coherence creation and certification.

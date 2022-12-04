@@ -1,0 +1,133 @@
+\makeatletter%
+\newlength\ionwell@ellipsis\settowidth\ionwell@ellipsis{\footnotesize \ $\dots$\ }%
+\newlength\ionwell@width\setlength\ionwell@width{0.11\linewidth}%
+\newlength\ionwell@height\setlength\ionwell@height{0.09\linewidth}%
+\tikzset{%
+    every picture/.style = {%
+        semithick,
+    },
+    coupling/.style={
+        {Latex}-{Latex},
+    },
+    semicoupling/.style={
+        {Latex}-,
+        dashed,
+    },
+    extension/.style={
+        draw=black,
+        dashed,
+    },
+    idim/.style={
+        draw=black,
+        {Stealth}-{Stealth},
+    },
+    edim/.style={
+        draw=black,
+        {Stealth}-,
+    },
+    pulse/.style = {
+        inner sep=0mm,
+        minimum height = 1.5\baselineskip,
+        below = 2em of midbottom,
+    },
+    ion/.style = {
+        inner sep=0mm,
+        minimum size = #1*0.9em,
+        circle,
+        thick,
+        draw = solbase01,
+        fill = solbase01!50,
+    },
+    ion well/.pic={
+        code={%
+\coordinate (topleft) at (-0.5\ionwell@width, 1.75\ionwell@height);
+\coordinate (midbottom) at (0.6125\ionwell@width, 0);
+\coordinate (offset) at (1.25\ionwell@width, 0.5\ionwell@height);
+\begin{scope}
+\draw [name path=g-parab]
+                (-0.5\ionwell@width, \ionwell@height+0.5\ionwell@ellipsis)
+                parabola bend (0, 0)
+                (0.5\ionwell@width, \ionwell@height+0.5\ionwell@ellipsis);
+\coordinate (g-pbase) at (0, 0);
+
+\foreach \y in {0, 1, 2, 3} {
+    \path [name path=g-cross\y]
+        (-0.5\ionwell@width, 0.142857\ionwell@height+\y*0.285714\ionwell@height)
+        -- +(\ionwell@width, 0)
+        coordinate [midway] (g-line\y);
+    \draw [name intersections={of=g-parab and g-cross\y}]
+        (intersection-1) coordinate (g-line\y-l)
+        -- (intersection-2) coordinate (g-line\y-r);}
+
+\path (0, \ionwell@height) -- +(0, \ionwell@ellipsis)
+    node [font=\footnotesize, midway, sloped] {$\dots$};
+\end{scope}
+\begin{scope}[shift={(offset)}]
+\draw [name path=e-parab]
+                (-0.5\ionwell@width, \ionwell@height+0.5\ionwell@ellipsis)
+                parabola bend (0, 0)
+                (0.5\ionwell@width, \ionwell@height+0.5\ionwell@ellipsis);
+\coordinate (e-pbase) at (0, 0);
+
+\foreach \y in {0, 1, 2, 3} {
+    \path [name path=e-cross\y]
+        (-0.5\ionwell@width, 0.142857\ionwell@height+\y*0.285714\ionwell@height)
+        -- +(\ionwell@width, 0)
+        coordinate [midway] (e-line\y);
+    \draw [name intersections={of=e-parab and e-cross\y}]
+        (intersection-1) coordinate (e-line\y-l)
+        -- (intersection-2) coordinate (e-line\y-r);}
+
+\path (0, \ionwell@height) -- +(0, \ionwell@ellipsis)
+    node [font=\footnotesize, midway, sloped] {$\dots$};
+\end{scope}
+        }
+    },
+}%
+\begin{minipage}\widefigwidth%
+\begin{tikzpicture}
+    \pic {ion well};
+    %% Extension lines and error definitions
+    \makeatletter
+    \newcommand*\@extension[3]{%
+    \path let \p1=(#2), \p2=(#3) in
+        [extension] (\x1, \y1) -- (#1*\x1+\x2-#1*\x2, \y1)
+        (#1*\x1+\x2-#1*\x2, \y2) -- (\x2, \y2);}
+    \newcommand*\idimension[5][.5]{%
+        \@extension{#1}{#2}{#3}
+        \path let \p1=(#2), \p2=(#3) in [idim] (#1*\x1+\x2-#1*\x2, \y1) -- ++(0, \y2-\y1);
+        \path let \p1=(#2), \p2=(#3) in
+            [right, #5] node at (#1*\x1+\x2-#1*\x2, .5*\y1 + .5*\y2) {#4};}
+    \newcommand*\edimension[5][.5]{%
+        \@extension{#1}{#2}{#3}
+        \path let \p1=(#2), \p2=(#3) in [edim] (#1*\x1+\x2-#1*\x2, \y1) -- ++(0, 0.8em)
+            node [right, #5] {#4};
+        \path let \p1=(#2), \p2=(#3) in [edim] (#1*\x1+\x2-#1*\x2, \y2) -- ++(0, -0.8em);}
+    \makeatother
+    \idimension{g-line0}{e-line0}{$\omega_{eg}$}{xshift=0em, yshift=-0.5em};
+    \edimension[0.25]{g-line3-l}{g-line2}{$\omega_z$}{xshift=-1.6em, yshift=-0.18em};
+    \edimension[0.25]{e-line2-r}{e-line1}{$\omega_z$}{xshift=-0.1em, yshift=-0.18em};
+    \foreach \e/\g in {0/1, 1/2, 2/3}
+        \draw [coupling, redsb] (g-line\g) -- (e-line\e);
+    \node [pulse, redsb, align=center]
+        {Red sideband\\$\propto i\eta (\sp\a - \sm\a^\dagger)$};
+\end{tikzpicture}\hfill\begin{tikzpicture}
+    \pic {ion well};
+    \foreach \i in {0, 1, 2, 3} {
+        \path let \p0 = (g-line\i-l), \p1 = (g-line3-l) in
+            node [inner sep=0mm, left = 0.5em] at (\x1, \y0) {$\ket\i$};
+        \path let \p0 = (e-line\i-r), \p1 = (e-line3-r) in
+            node [inner sep=0mm, right = 0.5em] at (\x1, \y0) {$\ket\i$};
+    }
+    \node [inner sep=0mm, below = 0.5em of g-pbase] {$\ket{g}$};
+    \node [inner sep=0mm, below = 0.5em of e-pbase] {$\ket{e}$};
+    \foreach \e/\g in {0/0, 1/1, 2/2, 3/3}
+        \draw [coupling, carrier] (g-line\g) -- (e-line\e);
+    \node [align=center, pulse, carrier] {Carrier\\$\propto \sp + \sm$};
+\end{tikzpicture}\hfill\begin{tikzpicture}
+    \pic {ion well};
+    \foreach \e/\g in {1/0, 2/1, 3/2}
+        \draw [coupling, bluesb] (g-line\g) -- (e-line\e);
+    \node [pulse, bluesb, align=center]
+        {Blue sideband\\$\propto i\eta (\sp\a^\dagger - \sm\a)$};
+\end{tikzpicture}\end{minipage}\makeatother%

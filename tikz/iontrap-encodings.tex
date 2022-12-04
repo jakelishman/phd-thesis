@@ -1,0 +1,80 @@
+\newlength\calciumfigureheight\setlength\calciumfigureheight{5cm}%
+\newlength\energylevellength\setlength\energylevellength{1.23cm}%
+\newlength\GHzperT\setlength\GHzperT{0.013cm}%
+\begin{tikzpicture}[
+    node distance = 0em,
+    main-level/.style={
+        draw=black,
+        thick,
+    },
+    zeeman/.style={
+        draw=black,
+    },
+    driven/.style={
+        {Latex[scale=1]}-{Latex[scale=1]},
+        draw={#1},
+        fill={#1},
+        thick,
+    },
+    allowed/.style={
+        draw=black,
+        {Latex[scale=1]}-{Latex[scale=1]},
+    },
+    every node/.style={
+        inner sep=0.2em,
+    },
+    qubit/.style args = {#1/#2/#3}{
+        ellipse,
+        draw={#1},
+        thick,
+        dashed,
+        inner xsep={#3},
+        fit={#2},
+    },
+]
+\coordinate (S12) at (-1.2\energylevellength, 0);
+\coordinate (D32) at (1.2\energylevellength, 0.75\calciumfigureheight);
+\coordinate (D52) at (1.2\energylevellength, \calciumfigureheight);
+\foreach \level/\split in {S12/14.0, D32/5, D52/6.5} {
+    \StrChar{\level}{1}[\letter]
+    \StrChar{\level}{2}[\numer]
+    \StrChar{\level}{3}[\denom]
+    \def\dir{\if D\letter-1\else1\fi}
+    \path [main-level] ($(\level) - .5*(\energylevellength, 0)$) coordinate (\level-left)
+        -- +(\energylevellength, 0) coordinate (\level-right);
+    \node [anchor=south \if\dir1west\else east\fi] at (\level-\if\dir1left\else right\fi)
+          {$\mathrm{\letter}_{\numer\mkern-1mu/\mkern-1mu\denom}$};
+    \foreach \x in {0, ..., \numer} {
+        \path [zeeman] ($(\level) + (\dir *.5\energylevellength, 0)$)
+            -- +($(\dir *0.25*\energylevellength, 2*\x *\split *\GHzperT) + (0, -\numer *\split *\GHzperT)$) coordinate (\level-\x-\if D\letter R \else L\fi)
+            -- +($(\dir *0.5\energylevellength, 2 *\x *\split *\GHzperT) + (0, -\numer *\split *\GHzperT)$) coordinate (\level-\x-\if D\letter L\else R\fi)
+            coordinate [midway] (\level-\x);
+    }
+}
+\path [driven=redsb]
+    (S12-1) -- (D52-3)
+    node (729) [midway, sloped, anchor=south, redsb] {Optical qubit};
+
+\node (z-qubit) [qubit=bluesb/(S12-1)(S12-0)/0.18\energylevellength] {};
+\node [below=of z-qubit] {\textcolor{bluesb}{Zeeman qubit}};
+
+\path coordinate [right=1.5\energylevellength of S12] (arrow-l) [draw=fade, ->] (arrow-l) -- +(\energylevellength, 0) coordinate (arrow-r);
+\path [draw=fade, densely dashed, rounded corners=1em] ($ (arrow-r) + (0.5\energylevellength, -0.135\calciumfigureheight) $) -- ++(3.5\energylevellength, 0) coordinate [midway] (box-bottom) -- ++(0, 0.7\calciumfigureheight) -- ++(-3.5\energylevellength, 0) coordinate [midway] (box-top) -- cycle;
+\node [below=0.25\baselineskip of box-top] {$\mathrm{S}_{1\mkern-1mu/\mkern-1mu2}$ with nuclear spin $I = \frac12$};
+
+\coordinate (S12-F0) at ($ (box-bottom) + (0.6\energylevellength, 0.2\calciumfigureheight) $);
+\coordinate (S12-F1) at ($ (S12-F0) + (0, 0.2\calciumfigureheight) $);
+
+\path [main-level] ($ (S12-F0) + (-0.25\energylevellength, 0) $) -- ++(0.5\energylevellength, 0);
+\foreach \level in {-1, 0, 1}
+    \path [main-level] ($ (S12-F1) + (-0.25\energylevellength, 0) + \level *(0.65\energylevellength, 0.03\calciumfigureheight) $) coordinate (S12-F1 \level-l) -- ++(0.5\energylevellength, 0);
+
+\node [left=2.28\energylevellength of S12-F0, anchor=west] {$F=0$};
+\node (S12-F1 label) [left=2.28\energylevellength of S12-F1, anchor=west] {$F=1$};
+\path let \p1=(S12-F1 -1-l), \p2=(S12-F1 1-l), \p3=(S12-F1 label.east) in
+    [draw, decorate, decoration=brace]
+    ($ (0.5*\x1 + 0.5*\x3, \y1 - 0.2em) $) -- ($ (0.5*\x1 + 0.5*\x3, \y2 + 0.2em) $);
+
+\node (hf-qubit) [qubit=carrier/(S12-F0)(S12-F1)/0.3\energylevellength] {};
+\node [below=of hf-qubit] {\textcolor{carrier}{Hyperfine qubit}};
+\end{tikzpicture}%
