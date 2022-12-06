@@ -56,7 +56,7 @@ The insight is to quantify the coherence of a state by the minimum distance betw
 This permits a family of measures, based on the particulars of the distance used.
 Various works have investigated the properties of using the relative entropy~\cite{Baumgratz2014,Winter2016}, the state infidelity~\cite{Streltsov2015} and both Schatten-$p$ and $\ell_p$ matrix norms~\cite{Baumgratz2014,Rana2016}.
 
-Measures and witnesses of higher-order coherence are more complex to construct, as they target an understand of a more nuanced view of coherence.
+Measures and witnesses of higher-order coherence are more complex to construct, as they target an understanding of a more nuanced view of coherence.
 As an illustration, the $\ell_1$ norm is commonly used to characterise two-level coherence, but plainly cannot distinguish the number of superposition elements taken alone.
 More involved functionals of the off-diagonal terms have been used to construct more complete quantifiers~\cite{Levi2014,Ringbauer2018}, but these still require detailed tomographic measurements.
 Some of these schemes may be used to construct witnesses, or to use incomplete data to lower-bound the rank of coherence present~\cite{Ringbauer2018}, but these prior methods make significant assumptions about the properties of the physical system and the correctness of coherent manipulations.
@@ -334,10 +334,10 @@ The different motion levels oscillate with their respective coupled state at gen
 The total state after the first pulse is some new $c_{g,0}\ket{g,0} + c_{e,0}\ket{e,0} + \dotsb + c_{g,\,n-1}\ket{g,\msquash{n-1}} + c_{e,\,n-1}\ket{e,\msquash{n-1}}$ for complex $\{c\}$, where now various excited electronic states are involved.
 The pulse angle and phase to achieve this with a red-sideband pulse exactly on resonance can be derived from \cref{eq:iontrap-sideband-evolution} as
 \begin{equation}\label{eq:coherence-creation-angles}
-\Omega_{n,\,n-1}t = \pm2\arctan\frac{\abs{c_g}}{\abs{c_e}} \quad\text{and}\quad
-\phi = \arg\frac{c_g}{c_e} + \pi,
+\Omega_{n,\,n-1}t = \pm2\arctan\frac{\abs{c_{g,n}}}{\abs{c_{e,\,n-1}}} \quad\text{and}\quad
+\phi = \arg\frac{c_{g,n}}{c_{e,\,n-1}} + \pi,
 \end{equation}
-and equivalent operations using the carrier and blue-sideband transitions have similar forms.
+and equivalent operations using the carrier and blue-sideband transitions have similar forms, albeit with modified motional levels.
 Next combine the populations of the $\ket{g,\msquash{n-1}}$ and $\ket{e,\msquash{n-1}}$ states into one of these two by using the carrier.
 Depending on whether the ground or excited electronic state is chosen, apply either the red or blue sideband to reduce the motional level again.
 Repeat these steps until the state reaches some $c_{g,0}'\ket{g,0} + c_{e,0}'\ket{e,0}$, then apply a final carrier to reach the initial state $\ket{g,0}$, and take the adjoint of the whole sequence to find the desired forwards mapping.
@@ -351,7 +351,7 @@ For some cases, especially with large superpositions, it may be worth spending l
 The dominant experimental concerns in choosing the particular solution are minimisation of total pulse time and, to a slightly lesser extent, limiting the number of different transitions addressed.
 Most decoherence channel magnitudes are directly related to the total time: motional heating, frequency drift, voltage instabilities, and so forth.
 Using fewer transitions reduces experimental complexity by minimising the amount of calibration required.
-In theory it should be possible to cleanly address all transitions once the lasers are calibrated qubit frequency, and the modulation of the laser is calibrated to the trap frequency.
+In theory it should be possible to cleanly address all transitions once the lasers are calibrated to the qubit frequency, and the modulation of the laser is calibrated to the trap frequency.
 In practice, though, some components may show non-linear responses to different target frequencies, and the highest-fidelity operations can typically only be achieved after each transition separation frequency and coupling strength are measured individually.
 
 Despite having an infinite number of possible solutions, one can still find the absolute shortest-time solution with a breadth-first search.
@@ -394,7 +394,7 @@ This leads to a small set of conditions for $\U_{\text m}$:
 \hat{\mathcal U}_{\text m} \bigl(\ket{g,0} - \ket{g,2}\bigr) &\propto \ket{g,\lambda_3}.
 \end{aligned}\end{equation}
 States with more than two phonons do not need to be considered in this mapping, since they do not become populated as part of the state creation or evolution.
-The choice of the particular other orthogonal states is unimportant, provided the states chosen span the same space as $\{\ket{g,0},\,\ket{g,1},\,\ket{g,2}\}$; by linearity of $\U_{\text m}$, any state in this space orthogonal to the target is a linear combination of the two other states chosen, and so will also be purely in the ground state.
+The choice of the particular other orthogonal states is unimportant, provided the states chosen span the same space as $\{\ket{g,0},\,\ket{g,1},\,\ket{g,2}\}$; by linearity of $\U_{\text m}$, any state in this space orthogonal to the target is a linear combination of the two other states chosen, and so will also be purely in the electronic ground state.
 
 Any choice of the motional states $\{\ket{\lambda_j}\}$---no matter their amount of coherence---is suitable, and equally efficient if the mapping is implemented ideally; the motion is completely traced out and plays no further part.
 We still must attempt to minimise the total time of this pulse sequence, though, to avoid the effects of the same decoherence processes described in \cref{sec:coherence-creation}.
@@ -686,10 +686,10 @@ Note that the relative phases of the superposition elements are important in bot
 We kept all elements the same phase for simplicity in describing them.
 
 After the state creation, one can take an incoherent measure of the populations of each state as a sanity check.
-All population should be in the ground state of the ion, and this can be tested directly with the standard ion-trap measurement.
+All population should be in the electronic ground state of the ion, and this can be tested directly with the standard ion-trap measurement.
 Due to the nature of the superposition-creation algorithm, having all population in $\ket g$ is a very good indication that the algorithm was successful; miscalibrated frequencies, pulse powers or phase drift would all cause appreciable population to remain in $\ket e$ at the completion of the algorithm.
 
-Nonetheless we can also make an estimate of the populations in each motional level with a Rabi-type experiment.
+We can also make an estimate of the populations in each motional level with a Rabi-type experiment.
 The superposition state is evolved by applying the blue sideband for a varying amount of time.
 Each motional level $\ket{g,n}$ will undergo oscillation between the ground and excited electronic states at a rate proportional to $\sqrt{n+1}$ inside the Lamb--Dicke regime.
 Scanning the length of the pulse builds up a pattern such as \cref{fig:coherence-bsb} for the three-element superposition.
@@ -727,6 +727,8 @@ Any standard optimisation routine can then be used to maximise the quantity.
 The parameters to be fit to the data here were: the base Rabi frequency of the sideband; a detuning from the actual transition frequency; the basis-state populations of $\ket{g,n}$ and $\ket{e,n}$, with $n$ up to one phonon larger than the maximum expected; and phase correlations between pairs of states coupled by the blue sideband.
 In addition, we account for potential motional dephasing by simulating the Lindblad master equation of \cref{eq:qi-lindblad-master} with an additional jump operator $\op L = \sqrt\gamma \a^\dagger\a$ for some rate $\gamma$ included in the fit.
 Physically this additional term is a proxy for the effect of a drifting laser phase.
+We satisfy the requirement that this operator is bounded by truncating the Hilbert space considered to only the required motional levels.
+There are no processes being modelled that would cause the population to move outside this subspace.
 
 Performing maximum-likelihood estimation alone does not give any indication of the level of confidence in the fitted values.
 The simplest method for obtaining an estimate of this is by bootstrapping.

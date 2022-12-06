@@ -233,4 +233,11 @@ Under this approximation, the time evolution of the density operator for only th
 \partial_t\op\rho = -\frac i\hbar\comm[\big]{\H}{\op\rho} + \frac12\sum_j\bigl(2\op L_j^{}\op\rho\op L_j^{\smash\dagger} - \op L_j^{\smash\dagger}\op L_j^{}\op\rho - \op\rho\op L_j^{\smash\dagger}\op L_j^{}\bigr).
 \end{equation}
 The $\{\op L_j\}$ are \emph{collapse} or \emph{dissipation} operators, which represent the effects of the environment on the system.
-The dominant effects that we shall consider are motional heating, associated with $\a^\dagger$, and motional dephasing, associated with $\a^\dagger\a$; in the trapped-ion system in use at Imperial, the time-scales of qubit noise processes are far longer than those of ion motion.
+These operators must preserve the \emph{completely positive trace-preserving} properties of the evolution.
+Complete positivity is the requirement that the operation, when applied to only a subsystem of a quantum state in a larger Hilbert space, maintains the positive-semidefinite nature of the whole density matrix.
+This applies a condition on the collapse operators that they are \emph{bounded}, that is that each has a finite maximum of $\matel\psi{\op L_j^\dagger\op L_j^{}}\psi$ over all normalised vectors $\{\ket\psi\}$ in the relevant Hilbert space.
+
+The only effect that we shall consider in this framework is motional dephasing, associated with $\a^\dagger\a$; in the trapped-ion system in use at Imperial, the time scales of qubit noise processes are far longer than those of ion motion.
+This operator is not strictly bounded; in an infinite-dimensioned Hilbert space, its eigenvalues are the set of natural numbers.
+For our purposes, we will be able to consider only a finite subspace up to some maximal motional state that never becomes populated.
+Within this related Hilbert space, the corresponding truncated operator is bounded.
